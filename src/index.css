@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Font family tokens — emits --font-sans / --font-heading CSS vars + utility classes */
+@theme {
+  --font-sans:    'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Accent color tokens — overridden at runtime via appearanceStore */
+  --color-accent-50:  var(--accent-50,  #ecfeff);
+  --color-accent-400: var(--accent-400, #22d3ee);
+  --color-accent-500: var(--accent-500, #06b6d4);
+  --color-accent-600: var(--accent-600, #0891b2);
+  --color-accent-700: var(--accent-700, #0e7490);
+  --color-accent-950: var(--accent-950, #083344);
+}
+
+@layer base {
+  /* Default border color — components override as needed */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-stone-200);
+  }
+
+  .dark *,
+  .dark ::before,
+  .dark ::after {
+    border-color: var(--color-stone-700);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-50;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* ── Scrollbar ─────────────────────────────────────────────── */
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-stone-300) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: var(--color-stone-600) transparent;
+  }
+
+  /* WebKit (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-stone-300);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-stone-400);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: var(--color-stone-600);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-stone-500);
+  }
+}
