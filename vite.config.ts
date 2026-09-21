@@ -16,4 +16,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    // Pinned so it never collides with link-vault-fe on 5173. The backend's
+    // ADMIN_URL CORS origin expects http://localhost:5174.
+    port: 5174,
+    strictPort: true,
+  },
 });

@@ -7,10 +7,10 @@ Admin panel for the **Pahadi Shilpkar** storefront: categories, products, testim
 ```bash
 npm install
 cp .env.example .env   # set VITE_API_BASE_URL (see .env.development / .env.production)
-npm run dev            # http://localhost:5173
+npm run dev            # http://localhost:5174
 ```
 
-The backend allows a single CORS origin (`CLIENT_URL`). Run this panel on `http://localhost:5173` locally unless the backend has been changed to allow another origin.
+The backend allows the storefront (`CLIENT_URL`) and this panel (`ADMIN_URL`) through CORS. Run this panel on `http://localhost:5174` locally, matching the backend's `ADMIN_URL`; the port is pinned in `vite.config.ts` so it never collides with `link-vault-fe` on 5173.
 
 Optional: set `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET` to enable direct browser uploads on image fields. Without them, image fields accept pasted URLs only (the backend has no upload endpoint).
 
