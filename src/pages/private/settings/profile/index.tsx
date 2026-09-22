@@ -105,10 +105,11 @@ const ProfilePage = () => {
                     alt="Avatar preview"
                     placeholder="https://example.com/avatar.jpg"
                     disabled={updateProfile.isPending}
+                    variant="avatar"
                   />
                 </FormControl>
                 <FormDescription>
-                  Paste an image URL. The backend has no upload endpoint.
+                  Upload a photo or paste an image URL.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

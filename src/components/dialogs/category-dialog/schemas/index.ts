@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { VALIDATION_MESSAGES } from '@/constants/messages/shared';
+import { SLUG_REGEX } from '@/constants/regex';
 import { CATEGORY_FORM_FIELD_NAMES, CATEGORY_LIMITS } from '../constants';
 
 const optionalUrl = z
@@ -17,6 +18,14 @@ export const categoryFormSchema = z.object({
     .trim()
     .min(1, VALIDATION_MESSAGES.CATEGORY.NAME_REQUIRED)
     .max(CATEGORY_LIMITS.NAME_MAX, VALIDATION_MESSAGES.CATEGORY.NAME_MAX),
+  [CATEGORY_FORM_FIELD_NAMES.SLUG]: z
+    .string()
+    .trim()
+    .max(CATEGORY_LIMITS.SLUG_MAX, VALIDATION_MESSAGES.CATEGORY.SLUG_MAX)
+    .refine(
+      (value) => value === '' || SLUG_REGEX.test(value),
+      VALIDATION_MESSAGES.SLUG.INVALID,
+    ),
   [CATEGORY_FORM_FIELD_NAMES.DESCRIPTION]: z
     .string()
     .trim()
@@ -25,4 +34,6 @@ export const categoryFormSchema = z.object({
       VALIDATION_MESSAGES.CATEGORY.DESCRIPTION_MAX,
     ),
   [CATEGORY_FORM_FIELD_NAMES.IMAGE]: optionalUrl,
+  [CATEGORY_FORM_FIELD_NAMES.PARENT_ID]: z.string().uuid().nullable(),
+  [CATEGORY_FORM_FIELD_NAMES.IS_ACTIVE]: z.boolean(),
 });

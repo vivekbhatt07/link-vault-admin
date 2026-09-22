@@ -11,9 +11,10 @@ type TVariables = { id: string; payload: UpdateProductPayload };
 const UNDO_TOAST_DURATION_MS = 12_000;
 
 /**
- * Deactivating (`isActive: false`) hides the product from every read
- * endpoint, including this panel. The only way back is a PATCH with an id we
- * still hold, offered as an "Undo" action on the toast and nothing more.
+ * Deactivating (`isActive: false`) hides the product from the storefront and
+ * public API; the panel keeps it visible (it always requests
+ * `includeInactive=true`) and can flip it back via the same PATCH, offered
+ * here as a quick "Undo" action right after saving.
  */
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();

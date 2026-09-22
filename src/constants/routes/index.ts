@@ -9,10 +9,12 @@ export const ROUTES = {
       EDIT: (slug: string) => `/products/${slug}/edit`,
     },
     TESTIMONIALS: '/testimonials',
+    CUSTOMERS: '/customers',
     SETTINGS: {
       ROOT: '/settings',
       PROFILE: '/settings/profile',
       SECURITY: '/settings/security',
+      STORE: '/settings/store',
       APPEARANCE: '/settings/appearance',
     },
   },

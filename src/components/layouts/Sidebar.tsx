@@ -11,7 +11,9 @@ import {
   Package,
   Palette,
   Settings,
+  Store,
   User,
+  Users,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,11 +48,13 @@ const NAV_ITEMS: TNavItem[] = [
     to: ROUTES.PRIVATE.TESTIMONIALS,
     icon: MessageSquare,
   },
+  { label: 'Customers', to: ROUTES.PRIVATE.CUSTOMERS, icon: Users },
 ];
 
 const SETTINGS_SUB_ITEMS: TSettingsSubItem[] = [
   { label: 'Profile', to: ROUTES.PRIVATE.SETTINGS.PROFILE, icon: User },
   { label: 'Security', to: ROUTES.PRIVATE.SETTINGS.SECURITY, icon: Lock },
+  { label: 'Store', to: ROUTES.PRIVATE.SETTINGS.STORE, icon: Store },
   {
     label: 'Appearance',
     to: ROUTES.PRIVATE.SETTINGS.APPEARANCE,

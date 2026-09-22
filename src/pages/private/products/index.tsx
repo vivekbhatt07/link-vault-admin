@@ -9,14 +9,14 @@ import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { ROUTES } from '@/constants/routes';
-import { useCategories } from '@/hooks/categories';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   useDeleteProduct,
   useProducts,
   useToggleProductFeatured,
   useUpdateProduct,
 } from '@/hooks/products';
-import type { Product } from '@/types/api';
+import type { Product, ProductAvailability, ProductSort } from '@/types/api';
 
 import {
   DEACTIVATE_WARNING,
@@ -32,27 +32,37 @@ type TDialogState =
   | { type: 'deactivate'; product: Product }
   | { type: 'delete'; product: Product };
 
-const { PAGE, CATEGORY_ID, IS_FEATURED } = PRODUCT_LIST_SEARCH_PARAMS;
+const { PAGE, CATEGORY_ID, IS_FEATURED, IS_BESTSELLER, AVAILABILITY, SORT, SEARCH } =
+  PRODUCT_LIST_SEARCH_PARAMS;
 
-const parseFeatured = (value: string | null) =>
+const parseBoolean = (value: string | null) =>
   value === 'true' ? true : value === 'false' ? false : undefined;
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<TDialogState>({ type: 'closed' });
 
   // Server-side filters live in the URL so category 409 links can deep-link.
   const page = Math.max(1, Number(searchParams.get(PAGE)) || 1);
   const categoryId = searchParams.get(CATEGORY_ID) ?? undefined;
-  const isFeatured = parseFeatured(searchParams.get(IS_FEATURED));
+  const isFeatured = parseBoolean(searchParams.get(IS_FEATURED));
+  const isBestseller = parseBoolean(searchParams.get(IS_BESTSELLER));
+  const availability =
+    (searchParams.get(AVAILABILITY) as ProductAvailability | null) ?? undefined;
+  const sort = (searchParams.get(SORT) as ProductSort | null) ?? 'newest';
+  const search = searchParams.get(SEARCH) ?? '';
+  const debouncedSearch = useDebouncedValue(search, 400);
 
-  const categories = useCategories();
   const products = useProducts({
     page,
     limit: PRODUCT_LIST_LIMIT,
     categoryId,
     isFeatured,
+    isBestseller,
+    availability,
+    sort,
+    search: debouncedSearch || undefined,
+    includeInactive: true,
   });
   const toggleFeatured = useToggleProductFeatured();
   const updateProduct = useUpdateProduct();
@@ -72,13 +82,19 @@ const ProductsPage = () => {
     updateParams({ [key]: value, [PAGE]: undefined });
 
   const items = products.data?.items ?? [];
-  const query = search.trim().toLowerCase();
-  const visible = query
-    ? items.filter((product) => product.name.toLowerCase().includes(query))
-    : items;
+  const hasActiveFilters =
+    Boolean(categoryId) ||
+    isFeatured !== undefined ||
+    isBestseller !== undefined ||
+    Boolean(availability) ||
+    search.length > 0;
 
   const closeDialog = () => setDialog({ type: 'closed' });
   const isMutating = updateProduct.isPending || deleteProduct.isPending;
+
+  const handleActivate = (product: Product) => {
+    updateProduct.mutate({ id: product.id, payload: { isActive: true } });
+  };
 
   const handleDeactivate = () => {
     if (dialog.type !== 'deactivate') return;
@@ -100,7 +116,7 @@ const ProductsPage = () => {
       <PageHeader
         title="Products"
         count={products.data?.total}
-        description="Only active products are listed. Deactivated products are hidden everywhere."
+        description="Includes inactive products. Deactivated ones show an Inactive badge."
         actions={
           <Button asChild>
             <Link to={ROUTES.PRIVATE.PRODUCTS.CREATE}>
@@ -112,45 +128,44 @@ const ProductsPage = () => {
       />
 
       <ProductFilters
-        categories={categories.data ?? []}
         categoryId={categoryId}
         isFeatured={isFeatured}
+        isBestseller={isBestseller}
+        availability={availability}
+        sort={sort}
         search={search}
         onCategoryChange={(value) => setFilter(CATEGORY_ID, value)}
         onFeaturedChange={(value) =>
+          setFilter(IS_FEATURED, value === undefined ? undefined : String(value))
+        }
+        onBestsellerChange={(value) =>
           setFilter(
-            IS_FEATURED,
+            IS_BESTSELLER,
             value === undefined ? undefined : String(value),
           )
         }
-        onSearchChange={setSearch}
-        onClear={() => {
-          setSearch('');
-          setSearchParams(new URLSearchParams());
-        }}
+        onAvailabilityChange={(value) => setFilter(AVAILABILITY, value)}
+        onSortChange={(value) => setFilter(SORT, value === 'newest' ? undefined : value)}
+        onSearchChange={(value) => setFilter(SEARCH, value || undefined)}
+        onClear={() => setSearchParams(new URLSearchParams())}
       />
 
       {products.isPending ? (
         <Loader centered className="my-16" />
-      ) : visible.length > 0 ? (
+      ) : items.length > 0 ? (
         <>
           <ProductsTable
-            products={visible}
+            products={items}
             isBusy={isMutating}
             onToggleFeatured={(product, value) =>
               toggleFeatured.mutate({ id: product.id, isFeatured: value })
             }
+            onActivate={handleActivate}
             onDeactivate={(product) =>
               setDialog({ type: 'deactivate', product })
             }
             onDelete={(product) => setDialog({ type: 'delete', product })}
           />
-          {query && visible.length !== items.length && (
-            <p className="-mt-3 text-xs text-stone-400 dark:text-stone-500">
-              Showing {visible.length} of {items.length} on this page. The name
-              filter only applies to the current page.
-            </p>
-          )}
           <TablePagination
             page={products.data?.page ?? page}
             limit={products.data?.limit ?? PRODUCT_LIST_LIMIT}
@@ -165,20 +180,14 @@ const ProductsPage = () => {
       ) : (
         <EmptyState
           icon={<Package className="size-5" />}
-          title={
-            query || categoryId || isFeatured !== undefined
-              ? 'No products match'
-              : 'No products yet'
-          }
+          title={hasActiveFilters ? 'No products match' : 'No products yet'}
           description={
-            query
-              ? 'The name filter only searches the current page. Try clearing it.'
-              : categoryId || isFeatured !== undefined
-                ? 'Try a different category or featured filter.'
-                : 'Create your first product to get started.'
+            hasActiveFilters
+              ? 'Try different filters or clear them.'
+              : 'Create your first product to get started.'
           }
           action={
-            !query && !categoryId && isFeatured === undefined ? (
+            !hasActiveFilters ? (
               <Button size="sm" asChild>
                 <Link to={ROUTES.PRIVATE.PRODUCTS.CREATE}>
                   <Plus />
@@ -204,12 +213,11 @@ const ProductsPage = () => {
               <span className="font-medium text-stone-900 dark:text-stone-50">
                 {dialogProduct?.name}
               </span>{' '}
-              will disappear from the storefront and from this panel.
+              will disappear from the storefront.
             </p>
-            <p className="font-medium text-red-600 dark:text-red-400">
+            <p className="text-stone-600 dark:text-stone-400">
               {DEACTIVATE_WARNING}
             </p>
-            <p>An Undo action is offered briefly after deactivating.</p>
           </div>
         }
       />

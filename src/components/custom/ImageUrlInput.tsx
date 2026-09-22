@@ -11,11 +11,13 @@ type TImageUrlInputProps = {
   rounded?: 'md' | 'lg' | 'full';
   alt?: string;
   id?: string;
+  /** Which backend endpoint to upload through — POST /upload/images (default) or /avatar. */
+  variant?: 'images' | 'avatar';
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
 };
 
-/** Single image field: paste a URL (and/or upload when configured). */
+/** Single image field: paste a URL, or upload (falls back to paste-URL on 503). */
 const ImageUrlInput = ({
   value,
   onChange,
@@ -24,6 +26,7 @@ const ImageUrlInput = ({
   disabled,
   rounded = 'lg',
   alt = 'Preview',
+  variant = 'images',
   ...inputProps
 }: TImageUrlInputProps) => (
   <div className="flex items-center gap-3">
@@ -40,6 +43,7 @@ const ImageUrlInput = ({
         {...inputProps}
       />
       <UploadImageButton
+        variant={variant}
         onUploaded={(urls) => onChange(urls[0])}
         disabled={disabled}
       />

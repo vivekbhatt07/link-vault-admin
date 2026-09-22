@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react';
 
+import CategoryTreePicker from '@/components/custom/CategoryTreePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,17 +10,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Category } from '@/types/api';
+import type { ProductAvailability, ProductSort } from '@/types/api';
 
-import { FILTER_ALL } from '../constants';
+import { AVAILABILITY_OPTIONS, FILTER_ALL, SORT_OPTIONS } from '../constants';
 
 type TProductFiltersProps = {
-  categories: Category[];
   categoryId: string | undefined;
   isFeatured: boolean | undefined;
+  isBestseller: boolean | undefined;
+  availability: ProductAvailability | undefined;
+  sort: ProductSort;
   search: string;
   onCategoryChange: (categoryId: string | undefined) => void;
   onFeaturedChange: (isFeatured: boolean | undefined) => void;
+  onBestsellerChange: (isBestseller: boolean | undefined) => void;
+  onAvailabilityChange: (availability: ProductAvailability | undefined) => void;
+  onSortChange: (sort: ProductSort) => void;
   onSearchChange: (search: string) => void;
   onClear: () => void;
 };
@@ -30,58 +36,79 @@ const FEATURED_OPTIONS = [
   { value: 'false', label: 'Not featured' },
 ] as const;
 
-/**
- * Category and featured filters are server-side. The name search only
- * filters the page already loaded — the backend has no search endpoint.
- */
+const BESTSELLER_OPTIONS = [
+  { value: FILTER_ALL, label: 'All products' },
+  { value: 'true', label: 'Bestsellers only' },
+  { value: 'false', label: 'Not bestsellers' },
+] as const;
+
+/** Every filter here (incl. search) is a server-side query param. */
 const ProductFilters = ({
-  categories,
   categoryId,
   isFeatured,
+  isBestseller,
+  availability,
+  sort,
   search,
   onCategoryChange,
   onFeaturedChange,
+  onBestsellerChange,
+  onAvailabilityChange,
+  onSortChange,
   onSearchChange,
   onClear,
 }: TProductFiltersProps) => {
   const hasFilters =
-    Boolean(categoryId) || isFeatured !== undefined || search.length > 0;
+    Boolean(categoryId) ||
+    isFeatured !== undefined ||
+    isBestseller !== undefined ||
+    Boolean(availability) ||
+    search.length > 0;
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center">
-      <div className="flex-1">
-        <Input
-          type="search"
-          placeholder="Filter this page by name…"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-          onClear={() => onSearchChange('')}
-          startAdornment={
-            <Search className="pointer-events-none size-4 text-stone-400" />
-          }
-        />
-      </div>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex-1">
+          <Input
+            type="search"
+            placeholder="Search by name, SKU, or tag…"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onClear={() => onSearchChange('')}
+            startAdornment={
+              <Search className="pointer-events-none size-4 text-stone-400" />
+            }
+          />
+        </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="sm:w-56">
+          <CategoryTreePicker
+            value={categoryId ?? null}
+            onChange={(id) => onCategoryChange(id ?? undefined)}
+            allowNone
+            noneLabel="All categories"
+            placeholder="All categories"
+          />
+        </div>
+
         <Select
-          value={categoryId ?? FILTER_ALL}
-          onValueChange={(value) =>
-            onCategoryChange(value === FILTER_ALL ? undefined : value)
-          }
+          value={sort}
+          onValueChange={(value) => onSortChange(value as ProductSort)}
         >
-          <SelectTrigger className="sm:w-52" aria-label="Filter by category">
-            <SelectValue placeholder="All categories" />
+          <SelectTrigger className="sm:w-44" aria-label="Sort by">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={FILTER_ALL}>All categories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
+            {SORT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+      </div>
 
+      <div className="flex flex-wrap items-center gap-2">
         <Select
           value={isFeatured === undefined ? FILTER_ALL : String(isFeatured)}
           onValueChange={(value) =>
@@ -90,11 +117,52 @@ const ProductFilters = ({
             )
           }
         >
-          <SelectTrigger className="sm:w-44" aria-label="Filter by featured">
+          <SelectTrigger className="w-40" aria-label="Filter by featured">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {FEATURED_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={isBestseller === undefined ? FILTER_ALL : String(isBestseller)}
+          onValueChange={(value) =>
+            onBestsellerChange(
+              value === FILTER_ALL ? undefined : value === 'true',
+            )
+          }
+        >
+          <SelectTrigger className="w-44" aria-label="Filter by bestseller">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {BESTSELLER_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={availability ?? FILTER_ALL}
+          onValueChange={(value) =>
+            onAvailabilityChange(
+              value === FILTER_ALL ? undefined : (value as ProductAvailability),
+            )
+          }
+        >
+          <SelectTrigger className="w-44" aria-label="Filter by availability">
+            <SelectValue placeholder="All availability" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTER_ALL}>All availability</SelectItem>
+            {AVAILABILITY_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>

@@ -23,6 +23,28 @@ export const applyApiFieldErrors = <TFieldValues extends FieldValues>(
 };
 
 /**
+ * One level of structural equality — enough for arrays of primitives
+ * (tags, highlights) and arrays of flat objects (specifications,
+ * purchaseLinks), which are never reference-equal across a react-hook-form
+ * submit even when their values are unchanged.
+ */
+const isDeepEqual = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
+    return false;
+  }
+  const aKeys = Object.keys(a as Record<string, unknown>);
+  const bKeys = Object.keys(b as Record<string, unknown>);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key) =>
+    isDeepEqual(
+      (a as Record<string, unknown>)[key],
+      (b as Record<string, unknown>)[key],
+    ),
+  );
+};
+
+/**
  * Returns only the keys of `next` whose value differs from `current`.
  * Used so PATCH requests send just the changed fields (and never re-send an
  * unchanged `name`, which would otherwise regenerate the slug).
@@ -37,7 +59,7 @@ export const pickChangedFields = <T extends Record<string, unknown>>(
     const b = next[key];
     const isEqual =
       Array.isArray(a) && Array.isArray(b)
-        ? a.length === b.length && a.every((v, i) => v === b[i])
+        ? a.length === b.length && a.every((v, i) => isDeepEqual(v, b[i]))
         : a === b;
     if (!isEqual) changed[key] = b;
   });

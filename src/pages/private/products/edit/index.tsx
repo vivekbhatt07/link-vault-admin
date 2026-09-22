@@ -19,13 +19,34 @@ import type { TProductFormData } from '../types';
 
 const toFormData = (product: Product): TProductFormData => ({
   name: product.name,
+  slug: product.slug,
+  sku: product.sku ?? '',
+  shortDescription: product.shortDescription ?? '',
   description: product.description ?? '',
+  highlights: product.highlights,
   price: product.price,
-  stock: product.stock,
-  categoryId: product.categoryId,
+  compareAtPrice: product.compareAtPrice,
   images: product.images,
+  videoUrl: product.videoUrl ?? '',
+  material: product.material ?? '',
+  dimensions: product.dimensions ?? '',
+  weight: product.weight ?? '',
+  careInstructions: product.careInstructions ?? '',
+  specifications: product.specifications,
+  tags: product.tags,
+  stock: product.stock,
+  availability: product.availability,
   isFeatured: product.isFeatured,
+  isBestseller: product.isBestseller,
   isActive: product.isActive,
+  whatsappMessage: product.whatsappMessage ?? '',
+  purchaseLinks: product.purchaseLinks.map((link) => ({
+    ...link,
+    label: link.label ?? '',
+  })),
+  metaTitle: product.metaTitle ?? '',
+  metaDescription: product.metaDescription ?? '',
+  categoryId: product.categoryId,
 });
 
 type TPendingSubmit = {
@@ -43,21 +64,18 @@ const EditProductPage = () => {
 
   const submit = ({ payload, form }: TPendingSubmit) => {
     if (!product.data) return;
-    const deactivating = payload.isActive === false;
 
     updateProduct.mutate(
       { id: product.data.id, payload },
       {
         onSuccess: (response) => {
           setPendingDeactivate(null);
-          // A deactivated product 404s on its detail page.
-          if (deactivating || !response.data) {
-            navigate(ROUTES.PRIVATE.PRODUCTS.ROOT, { replace: true });
-            return;
-          }
-          navigate(ROUTES.PRIVATE.PRODUCTS.DETAIL(response.data.slug), {
-            replace: true,
-          });
+          navigate(
+            response.data
+              ? ROUTES.PRIVATE.PRODUCTS.DETAIL(response.data.slug)
+              : ROUTES.PRIVATE.PRODUCTS.ROOT,
+            { replace: true },
+          );
         },
         onError: (error) => {
           setPendingDeactivate(null);
@@ -74,30 +92,77 @@ const EditProductPage = () => {
     if (!product.data) return;
 
     // Only changed fields are sent; an unchanged name never regenerates the
-    // slug, and `images` is sent whole whenever it changed at all.
+    // slug, and array fields are sent whole whenever they changed at all.
     const changed = pickChangedFields(toFormData(product.data), data);
     if (Object.keys(changed).length === 0) {
       toast.info('No changes to save');
       return;
     }
 
-    // TODO(backend): the contract does not say how to clear `description`;
-    // `null` is sent for a cleared value.
     const payload: UpdateProductPayload = {
       ...(changed.name !== undefined && { name: changed.name }),
+      ...(changed.slug !== undefined && changed.slug && { slug: changed.slug }),
+      ...(changed.sku !== undefined && { sku: changed.sku || null }),
+      ...(changed.shortDescription !== undefined && {
+        shortDescription: changed.shortDescription || null,
+      }),
       ...(changed.description !== undefined && {
         description: changed.description || null,
       }),
+      ...(changed.highlights !== undefined && {
+        highlights: changed.highlights,
+      }),
       ...(changed.price !== undefined && { price: changed.price }),
-      ...(changed.stock !== undefined && { stock: changed.stock }),
-      ...(changed.categoryId !== undefined && {
-        categoryId: changed.categoryId,
+      ...(changed.compareAtPrice !== undefined && {
+        compareAtPrice: changed.compareAtPrice,
       }),
       ...(changed.images !== undefined && { images: changed.images }),
+      ...(changed.videoUrl !== undefined && {
+        videoUrl: changed.videoUrl || null,
+      }),
+      ...(changed.material !== undefined && {
+        material: changed.material || null,
+      }),
+      ...(changed.dimensions !== undefined && {
+        dimensions: changed.dimensions || null,
+      }),
+      ...(changed.weight !== undefined && { weight: changed.weight || null }),
+      ...(changed.careInstructions !== undefined && {
+        careInstructions: changed.careInstructions || null,
+      }),
+      ...(changed.specifications !== undefined && {
+        specifications: changed.specifications,
+      }),
+      ...(changed.tags !== undefined && { tags: changed.tags }),
+      ...(changed.stock !== undefined && { stock: changed.stock }),
+      ...(changed.availability !== undefined && {
+        availability: changed.availability,
+      }),
       ...(changed.isFeatured !== undefined && {
         isFeatured: changed.isFeatured,
       }),
+      ...(changed.isBestseller !== undefined && {
+        isBestseller: changed.isBestseller,
+      }),
       ...(changed.isActive !== undefined && { isActive: changed.isActive }),
+      ...(changed.whatsappMessage !== undefined && {
+        whatsappMessage: changed.whatsappMessage || null,
+      }),
+      ...(changed.purchaseLinks !== undefined && {
+        purchaseLinks: changed.purchaseLinks.map((link) => ({
+          ...link,
+          label: link.label || null,
+        })),
+      }),
+      ...(changed.metaTitle !== undefined && {
+        metaTitle: changed.metaTitle || null,
+      }),
+      ...(changed.metaDescription !== undefined && {
+        metaDescription: changed.metaDescription || null,
+      }),
+      ...(changed.categoryId !== undefined && {
+        categoryId: changed.categoryId,
+      }),
     };
 
     if (payload.isActive === false) {
@@ -116,7 +181,7 @@ const EditProductPage = () => {
       <EmptyState
         icon={<PackageX className="size-5" />}
         title="Product not found"
-        description="It may have been deleted or deactivated. Inactive products cannot be viewed from this panel."
+        description="It may have been deleted."
         className="w-full"
         action={
           <Button variant="outline" size="sm" asChild>
@@ -164,12 +229,11 @@ const EditProductPage = () => {
               <span className="font-medium text-stone-900 dark:text-stone-50">
                 {current.name}
               </span>{' '}
-              will disappear from the storefront and from this panel.
+              will disappear from the storefront.
             </p>
-            <p className="font-medium text-red-600 dark:text-red-400">
+            <p className="text-stone-600 dark:text-stone-400">
               {DEACTIVATE_WARNING}
             </p>
-            <p>An Undo action is offered briefly after saving.</p>
           </div>
         }
       />

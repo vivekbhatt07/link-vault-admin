@@ -14,7 +14,9 @@ import SettingsLayout from '@/pages/private/settings/layout';
 import AppearancePage from '@/pages/private/settings/appearance';
 import ProfilePage from '@/pages/private/settings/profile';
 import SecurityPage from '@/pages/private/settings/security';
+import StoreSettingsPage from '@/pages/private/settings/store';
 import TestimonialsPage from '@/pages/private/testimonials';
+import CustomersPage from '@/pages/private/customers';
 import ForgotPasswordPage from '@/pages/public/auth/forgot-password';
 import SignInPage from '@/pages/public/auth/sign-in';
 import NotFoundPage from '@/pages/public/errors/not-found';
@@ -75,6 +77,10 @@ export const AppRouter = () => {
             element={<TestimonialsPage />}
           />
           <Route
+            path={ROUTES.PRIVATE.CUSTOMERS}
+            element={<CustomersPage />}
+          />
+          <Route
             path={ROUTES.PRIVATE.SETTINGS.ROOT}
             element={<SettingsLayout />}
           >
@@ -86,6 +92,7 @@ export const AppRouter = () => {
             />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="security" element={<SecurityPage />} />
+            <Route path="store" element={<StoreSettingsPage />} />
             <Route path="appearance" element={<AppearancePage />} />
           </Route>
         </Route>

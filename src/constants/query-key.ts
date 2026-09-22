@@ -1,4 +1,10 @@
-import type { ProductListParams, TestimonialListParams } from '@/types/api';
+import type {
+  CategoryListParams,
+  CategoryTreeParams,
+  ProductListParams,
+  TestimonialListParams,
+  UserListParams,
+} from '@/types/api';
 
 export const QUERY_KEYS = {
   AUTH: {
@@ -6,7 +12,10 @@ export const QUERY_KEYS = {
   },
   CATEGORIES: {
     ALL: ['categories'] as const,
-    LIST: ['categories', 'list'] as const,
+    LIST: (params: CategoryListParams = {}) =>
+      ['categories', 'list', params] as const,
+    TREE: (params: CategoryTreeParams = {}) =>
+      ['categories', 'tree', params] as const,
     DETAIL: (slug: string) => ['categories', 'detail', slug] as const,
   },
   PRODUCTS: {
@@ -20,5 +29,12 @@ export const QUERY_KEYS = {
     LIST: (productId: string) => ['testimonials', 'list', productId] as const,
     ALL_LIST: (params: TestimonialListParams) =>
       ['testimonials', 'all', params] as const,
+  },
+  SETTINGS: {
+    GET: ['settings'] as const,
+  },
+  USERS: {
+    ALL: ['users'] as const,
+    LIST: (params: UserListParams) => ['users', 'list', params] as const,
   },
 };

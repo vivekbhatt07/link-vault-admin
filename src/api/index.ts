@@ -9,11 +9,13 @@ import { ApiError, parseFieldErrors } from './error';
 
 const baseURL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
+// No default Content-Type header: axios sets `application/json` itself for
+// plain-object bodies. Leaving it unset lets FormData bodies (image uploads)
+// fall through untouched so the browser can add the multipart boundary —
+// with a default JSON header present, axios would instead JSON.stringify
+// the FormData, which breaks file uploads.
 export const api = axios.create({
   baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 api.interceptors.request.use((config) => {
