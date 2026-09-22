@@ -11,11 +11,10 @@ export const useDeleteTestimonial = () => {
 
   return useMutation({
     mutationFn: ({ id }: TVariables) => testimonialsService.remove(id),
-    onSuccess: (response, { productId, productSlug }) => {
+    onSuccess: (response, { productSlug }) => {
       toast.success(response.message);
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.TESTIMONIALS.LIST(productId),
-      });
+      // Prefix match: also covers the per-product LIST and the global ALL_LIST.
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TESTIMONIALS.ALL });
       // avgRating / testimonialCount live on the product detail.
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.PRODUCTS.DETAIL(productSlug),

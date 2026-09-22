@@ -7,6 +7,7 @@ import {
   FolderTree,
   LayoutDashboard,
   Lock,
+  MessageSquare,
   Package,
   Palette,
   Settings,
@@ -40,6 +41,11 @@ const NAV_ITEMS: TNavItem[] = [
   },
   { label: 'Categories', to: ROUTES.PRIVATE.CATEGORIES, icon: FolderTree },
   { label: 'Products', to: ROUTES.PRIVATE.PRODUCTS.ROOT, icon: Package },
+  {
+    label: 'Testimonials',
+    to: ROUTES.PRIVATE.TESTIMONIALS,
+    icon: MessageSquare,
+  },
 ];
 
 const SETTINGS_SUB_ITEMS: TSettingsSubItem[] = [

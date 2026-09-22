@@ -1,4 +1,4 @@
-import type { ProductListParams } from '@/types/api';
+import type { ProductListParams, TestimonialListParams } from '@/types/api';
 
 export const QUERY_KEYS = {
   AUTH: {
@@ -18,5 +18,7 @@ export const QUERY_KEYS = {
   TESTIMONIALS: {
     ALL: ['testimonials'] as const,
     LIST: (productId: string) => ['testimonials', 'list', productId] as const,
+    ALL_LIST: (params: TestimonialListParams) =>
+      ['testimonials', 'all', params] as const,
   },
 };

@@ -14,6 +14,7 @@ import SettingsLayout from '@/pages/private/settings/layout';
 import AppearancePage from '@/pages/private/settings/appearance';
 import ProfilePage from '@/pages/private/settings/profile';
 import SecurityPage from '@/pages/private/settings/security';
+import TestimonialsPage from '@/pages/private/testimonials';
 import ForgotPasswordPage from '@/pages/public/auth/forgot-password';
 import SignInPage from '@/pages/public/auth/sign-in';
 import NotFoundPage from '@/pages/public/errors/not-found';
@@ -68,6 +69,10 @@ export const AppRouter = () => {
           <Route
             path={ROUTES.PRIVATE.PRODUCTS.EDIT(':slug')}
             element={<EditProductPage />}
+          />
+          <Route
+            path={ROUTES.PRIVATE.TESTIMONIALS}
+            element={<TestimonialsPage />}
           />
           <Route
             path={ROUTES.PRIVATE.SETTINGS.ROOT}

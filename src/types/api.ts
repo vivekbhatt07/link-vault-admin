@@ -86,6 +86,16 @@ export interface Testimonial {
   updatedAt: string;
 }
 
+/** Only returned by GET /api/testimonials/all */
+export interface TestimonialWithProduct extends Testimonial {
+  product: { id: string; name: string; slug: string };
+}
+
+export interface TestimonialListParams {
+  page?: number;
+  limit?: number;
+}
+
 /* ── Request payloads ─────────────────────────────────────────── */
 
 export interface SignInPayload {

@@ -8,6 +8,7 @@ export const ROUTES = {
       DETAIL: (slug: string) => `/products/${slug}`,
       EDIT: (slug: string) => `/products/${slug}/edit`,
     },
+    TESTIMONIALS: '/testimonials',
     SETTINGS: {
       ROOT: '/settings',
       PROFILE: '/settings/profile',
