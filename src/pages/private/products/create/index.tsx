@@ -1,0 +1,128 @@
+import { Link, useNavigate } from 'react-router';
+import { ArrowLeft } from 'lucide-react';
+
+import PageHeader from '@/components/custom/PageHeader';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/constants/routes';
+import { applyApiFieldErrors } from '@/helpers/form';
+import { useCreateProduct } from '@/hooks/products';
+
+import ProductForm from '../layouts/ProductForm';
+import type { TProductFormData } from '../types';
+
+const DEFAULT_VALUES: TProductFormData = {
+  name: '',
+  slug: '',
+  sku: '',
+  shortDescription: '',
+  description: '',
+  highlights: [],
+  price: Number.NaN,
+  compareAtPrice: null,
+  images: [],
+  videoUrl: '',
+  material: '',
+  dimensions: '',
+  weight: '',
+  careInstructions: '',
+  specifications: [],
+  tags: [],
+  stock: 0,
+  availability: 'IN_STOCK',
+  isFeatured: false,
+  isBestseller: false,
+  isActive: true,
+  whatsappMessage: '',
+  purchaseLinks: [],
+  metaTitle: '',
+  metaDescription: '',
+  categoryId: '',
+};
+
+const CreateProductPage = () => {
+  const navigate = useNavigate();
+  const createProduct = useCreateProduct();
+
+  const handleSubmit: React.ComponentProps<typeof ProductForm>['onSubmit'] = (
+    data,
+    form,
+  ) => {
+    createProduct.mutate(
+      {
+        name: data.name,
+        price: data.price,
+        categoryId: data.categoryId,
+        ...(data.slug && { slug: data.slug }),
+        ...(data.sku && { sku: data.sku }),
+        ...(data.shortDescription && {
+          shortDescription: data.shortDescription,
+        }),
+        ...(data.description && { description: data.description }),
+        highlights: data.highlights,
+        ...(data.compareAtPrice !== null && {
+          compareAtPrice: data.compareAtPrice,
+        }),
+        images: data.images,
+        ...(data.videoUrl && { videoUrl: data.videoUrl }),
+        ...(data.material && { material: data.material }),
+        ...(data.dimensions && { dimensions: data.dimensions }),
+        ...(data.weight && { weight: data.weight }),
+        ...(data.careInstructions && {
+          careInstructions: data.careInstructions,
+        }),
+        specifications: data.specifications,
+        tags: data.tags,
+        stock: data.stock,
+        availability: data.availability,
+        isFeatured: data.isFeatured,
+        isBestseller: data.isBestseller,
+        ...(data.whatsappMessage && { whatsappMessage: data.whatsappMessage }),
+        purchaseLinks: data.purchaseLinks.map((link) => ({
+          ...link,
+          label: link.label || null,
+        })),
+        ...(data.metaTitle && { metaTitle: data.metaTitle }),
+        ...(data.metaDescription && { metaDescription: data.metaDescription }),
+      },
+      {
+        onSuccess: (response) => {
+          navigate(
+            response.data
+              ? ROUTES.PRIVATE.PRODUCTS.DETAIL(response.data.slug)
+              : ROUTES.PRIVATE.PRODUCTS.ROOT,
+            { replace: true },
+          );
+        },
+        onError: (error) => {
+          applyApiFieldErrors(form, error);
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+        <Link to={ROUTES.PRIVATE.PRODUCTS.ROOT}>
+          <ArrowLeft />
+          Back to products
+        </Link>
+      </Button>
+
+      <PageHeader
+        title="New product"
+        description="Products are created active and visible on the storefront immediately."
+      />
+
+      <ProductForm
+        mode="create"
+        defaultValues={DEFAULT_VALUES}
+        isPending={createProduct.isPending}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate(ROUTES.PRIVATE.PRODUCTS.ROOT)}
+      />
+    </div>
+  );
+};
+
+export default CreateProductPage;

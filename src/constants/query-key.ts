@@ -1,0 +1,40 @@
+import type {
+  CategoryListParams,
+  CategoryTreeParams,
+  ProductListParams,
+  TestimonialListParams,
+  UserListParams,
+} from '@/types/api';
+
+export const QUERY_KEYS = {
+  AUTH: {
+    ME: ['auth', 'me'] as const,
+  },
+  CATEGORIES: {
+    ALL: ['categories'] as const,
+    LIST: (params: CategoryListParams = {}) =>
+      ['categories', 'list', params] as const,
+    TREE: (params: CategoryTreeParams = {}) =>
+      ['categories', 'tree', params] as const,
+    DETAIL: (slug: string) => ['categories', 'detail', slug] as const,
+  },
+  PRODUCTS: {
+    ALL: ['products'] as const,
+    LISTS: ['products', 'list'] as const,
+    LIST: (params: ProductListParams) => ['products', 'list', params] as const,
+    DETAIL: (slug: string) => ['products', 'detail', slug] as const,
+  },
+  TESTIMONIALS: {
+    ALL: ['testimonials'] as const,
+    LIST: (productId: string) => ['testimonials', 'list', productId] as const,
+    ALL_LIST: (params: TestimonialListParams) =>
+      ['testimonials', 'all', params] as const,
+  },
+  SETTINGS: {
+    GET: ['settings'] as const,
+  },
+  USERS: {
+    ALL: ['users'] as const,
+    LIST: (params: UserListParams) => ['users', 'list', params] as const,
+  },
+};
