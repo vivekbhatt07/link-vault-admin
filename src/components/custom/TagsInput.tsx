@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type TTagsInputProps = {
   value: string[];
@@ -62,16 +63,29 @@ const TagsInput = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-200 p-1.5 dark:border-stone-700">
+      <div
+        className={cn(
+          'flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-200 bg-white p-1.5',
+          'transition-[border-color,box-shadow] duration-150 hover:border-stone-300',
+          'focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/15',
+          'dark:border-stone-700 dark:bg-stone-900/60 dark:hover:border-stone-600',
+          'dark:focus-within:border-accent-400 dark:focus-within:ring-accent-400/15',
+          disabled && 'pointer-events-none opacity-50',
+        )}
+      >
         {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+          <Badge
+            key={tag}
+            variant="accent"
+            className="animate-in gap-1 pr-1 duration-200 fade-in-0 zoom-in-90"
+          >
             {tag}
             {!disabled && (
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
                 aria-label={`Remove ${tag}`}
-                className="rounded-full p-0.5 hover:bg-stone-200 dark:hover:bg-stone-700"
+                className="cursor-pointer rounded-full p-0.5 transition-colors hover:bg-accent-200/70 dark:hover:bg-accent-800/60"
               >
                 <X className="size-3" />
               </button>
@@ -88,9 +102,14 @@ const TagsInput = ({
           onBlur={() => addTag(draft)}
           placeholder={value.length === 0 ? placeholder : undefined}
           disabled={disabled || value.length >= maxTags}
-          className="h-7 min-w-32 flex-1 border-none px-1 shadow-none focus-visible:border-none md:h-7"
+          className="h-7 min-w-32 flex-1 border-none bg-transparent px-1 shadow-none hover:border-none focus-visible:border-none focus-visible:ring-0 md:h-7 dark:bg-transparent"
         />
       </div>
+      {value.length > 0 && !error && (
+        <p className="text-xs text-stone-400 tabular-nums dark:text-stone-500">
+          {value.length}/{maxTags} tags · Backspace removes the last one
+        </p>
+      )}
       {error && (
         <p className="text-xs font-medium text-red-600 dark:text-red-400">
           {error}

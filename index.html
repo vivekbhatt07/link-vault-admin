@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pahadi Shilpkar Admin</title>
+    <!-- Apply the persisted theme before first paint to avoid a light flash. -->
+    <script>
+      try {
+        var stored = JSON.parse(localStorage.getItem('appearance-storage'));
+        var theme = (stored && stored.state && stored.state.theme) || 'system';
+        var dark =
+          theme === 'dark' ||
+          (theme === 'system' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(dark ? 'dark' : 'light');
+      } catch (error) {}
+    </script>
     <link href="/src/index.css" rel="stylesheet">
   </head>
   <body>

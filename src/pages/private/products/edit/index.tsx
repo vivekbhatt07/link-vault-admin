@@ -7,10 +7,11 @@ import EmptyState from '@/components/custom/EmptyState';
 import PageHeader from '@/components/custom/PageHeader';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
-import { Loader } from '@/components/ui/loader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/constants/routes';
 import { applyApiFieldErrors, pickChangedFields } from '@/helpers/form';
 import { useProduct, useUpdateProduct } from '@/hooks/products';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import type { Product, UpdateProductPayload } from '@/types/api';
 
 import { DEACTIVATE_WARNING } from '../constants';
@@ -61,6 +62,7 @@ const EditProductPage = () => {
   const updateProduct = useUpdateProduct();
   const [pendingDeactivate, setPendingDeactivate] =
     useState<TPendingSubmit | null>(null);
+  useDocumentTitle(product.data ? `Edit ${product.data.name}` : 'Edit product');
 
   const submit = ({ payload, form }: TPendingSubmit) => {
     if (!product.data) return;
@@ -173,7 +175,23 @@ const EditProductPage = () => {
   };
 
   if (product.isPending) {
-    return <Loader centered className="my-24" />;
+    return (
+      <div
+        className="flex w-full flex-col gap-6"
+        role="status"
+        aria-label="Loading"
+      >
+        <Skeleton className="h-8 w-36" />
+        <Skeleton className="h-8 w-80 max-w-full" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="flex flex-col gap-6 lg:col-span-2">
+            <Skeleton className="h-80 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   if (product.isError || !product.data) {
@@ -196,14 +214,22 @@ const EditProductPage = () => {
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="group -ml-2 w-fit text-stone-500"
+      >
         <Link to={ROUTES.PRIVATE.PRODUCTS.DETAIL(current.slug)}>
-          <ArrowLeft />
+          <ArrowLeft className="transition-transform group-hover:-translate-x-0.5" />
           Back to product
         </Link>
       </Button>
 
-      <PageHeader title={`Edit: ${current.name}`} />
+      <PageHeader
+        title={current.name}
+        description="Only the fields you change are saved."
+      />
 
       <ProductForm
         key={current.id}

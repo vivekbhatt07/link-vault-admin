@@ -82,18 +82,20 @@ const CategoryTreeList = ({
                 onDelete={() => onDelete(node)}
               />
               {isExpanded && node.children.length > 0 && (
-                <CategoryTreeList
-                  nodes={node.children}
-                  parentId={node.id}
-                  depth={depth + 1}
-                  expandedIds={expandedIds}
-                  forceExpanded={forceExpanded}
-                  onToggleExpand={onToggleExpand}
-                  onReorder={onReorder}
-                  onEdit={onEdit}
-                  onAddChild={onAddChild}
-                  onDelete={onDelete}
-                />
+                <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
+                  <CategoryTreeList
+                    nodes={node.children}
+                    parentId={node.id}
+                    depth={depth + 1}
+                    expandedIds={expandedIds}
+                    forceExpanded={forceExpanded}
+                    onToggleExpand={onToggleExpand}
+                    onReorder={onReorder}
+                    onEdit={onEdit}
+                    onAddChild={onAddChild}
+                    onDelete={onDelete}
+                  />
+                </div>
               )}
             </div>
           );

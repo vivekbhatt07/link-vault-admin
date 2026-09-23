@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const buttonVariants = cva(
   [
     'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium',
-    'transition-all duration-150 select-none cursor-pointer',
+    'transition-all duration-150 select-none cursor-pointer active:scale-[0.98]',
     'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-500/25 dark:focus-visible:ring-accent-400/30',
     'disabled:pointer-events-none disabled:opacity-50',
     '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
@@ -16,11 +16,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: [
-          'bg-accent-600 text-white shadow-sm hover:bg-accent-500 active:scale-[0.98] active:bg-accent-700',
+          'bg-accent-600 text-white shadow-sm hover:bg-accent-500 active:bg-accent-700',
           'dark:bg-accent-500 dark:text-white dark:hover:bg-accent-400 dark:active:bg-accent-600',
         ],
         destructive: [
-          'bg-red-600 text-white shadow-sm hover:bg-red-500 active:scale-[0.98] active:bg-red-700',
+          'bg-red-600 text-white shadow-sm hover:bg-red-500 active:bg-red-700',
           'dark:bg-red-500 dark:text-white dark:hover:bg-red-400 dark:active:bg-red-600',
           'focus-visible:ring-red-500/25',
         ],
@@ -40,7 +40,7 @@ const buttonVariants = cva(
           'dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-50 dark:active:bg-stone-700',
         ],
         link: [
-          'text-accent-600 underline-offset-4 hover:underline',
+          'text-accent-600 underline-offset-4 hover:underline active:scale-100',
           'dark:text-accent-400',
         ],
       },

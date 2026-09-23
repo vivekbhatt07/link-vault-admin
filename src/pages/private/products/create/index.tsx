@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/constants/routes';
 import { applyApiFieldErrors } from '@/helpers/form';
 import { useCreateProduct } from '@/hooks/products';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 import ProductForm from '../layouts/ProductForm';
 import type { TProductFormData } from '../types';
@@ -40,6 +41,7 @@ const DEFAULT_VALUES: TProductFormData = {
 };
 
 const CreateProductPage = () => {
+  useDocumentTitle('New product');
   const navigate = useNavigate();
   const createProduct = useCreateProduct();
 
@@ -102,9 +104,14 @@ const CreateProductPage = () => {
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="group -ml-2 w-fit text-stone-500"
+      >
         <Link to={ROUTES.PRIVATE.PRODUCTS.ROOT}>
-          <ArrowLeft />
+          <ArrowLeft className="transition-transform group-hover:-translate-x-0.5" />
           Back to products
         </Link>
       </Button>

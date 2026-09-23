@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type UseFormReturn } from 'react-hook-form';
-import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router';
 
+import Callout from '@/components/custom/Callout';
 import CategoryTreePicker from '@/components/custom/CategoryTreePicker';
+import FormActionBar from '@/components/custom/FormActionBar';
 import ImagesInput from '@/components/custom/ImagesInput';
 import TagsInput from '@/components/custom/TagsInput';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ROUTES } from '@/constants/routes';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import type { Product } from '@/types/api';
 
 import {
@@ -73,6 +75,10 @@ const toNullableNumber = (event: React.ChangeEvent<HTMLInputElement>) =>
 
 const nullableNumberValue = (value: number | null) =>
   value === null ? '' : value;
+
+const RupeePrefix = () => (
+  <span className="text-sm text-stone-400 dark:text-stone-500">₹</span>
+);
 
 const ProductForm = ({
   mode,
@@ -124,7 +130,19 @@ const ProductForm = ({
   const metaTitleValue = form.watch(META_TITLE) ?? '';
   const metaDescriptionValue = form.watch(META_DESCRIPTION) ?? '';
   const priceValue = form.watch(PRICE);
+  const compareAtPriceValue = form.watch(COMPARE_AT_PRICE);
   const isActiveValue = form.watch(IS_ACTIVE);
+  const isDirty = form.formState.isDirty;
+  useUnsavedChangesWarning(isDirty && !isPending);
+
+  // Live preview of the storefront discount badge while typing.
+  const liveDiscount =
+    compareAtPriceValue !== null &&
+    !Number.isNaN(priceValue) &&
+    priceValue > 0 &&
+    compareAtPriceValue > priceValue
+      ? Math.round((1 - priceValue / compareAtPriceValue) * 100)
+      : null;
   const isRenaming = isEdit && product && nameValue.trim() !== product.name;
   const isSlugChanged =
     isEdit && product && slugValue.trim() !== (product.slug ?? '');
@@ -177,17 +195,14 @@ const ProductForm = ({
                 />
 
                 {isRenaming && (
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                    <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                    <p>
-                      Renaming regenerates the slug (unless you set a custom
-                      one below) and{' '}
-                      <span className="font-medium">
-                        breaks existing storefront URLs
-                      </span>
-                      .
-                    </p>
-                  </div>
+                  <Callout variant="warning">
+                    Renaming regenerates the slug (unless you set a custom one
+                    below) and{' '}
+                    <span className="font-medium">
+                      breaks existing storefront URLs
+                    </span>
+                    .
+                  </Callout>
                 )}
 
                 <FormField
@@ -426,7 +441,9 @@ const ProductForm = ({
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
-                        <FormLabel optional>WhatsApp message override</FormLabel>
+                        <FormLabel optional>
+                          WhatsApp message override
+                        </FormLabel>
                         <span className="text-xs text-stone-400 dark:text-stone-500">
                           {whatsappMessageValue.length}/
                           {PRODUCT_LIMITS.WHATSAPP_MESSAGE_MAX}
@@ -488,7 +505,8 @@ const ProductForm = ({
                       <div className="flex items-center justify-between">
                         <FormLabel optional>Meta title</FormLabel>
                         <span className="text-xs text-stone-400 dark:text-stone-500">
-                          {metaTitleValue.length}/{PRODUCT_LIMITS.META_TITLE_MAX}
+                          {metaTitleValue.length}/
+                          {PRODUCT_LIMITS.META_TITLE_MAX}
                         </span>
                       </div>
                       <FormControl>
@@ -551,16 +569,13 @@ const ProductForm = ({
                   )}
                 />
                 {isSlugChanged && !isRenaming && (
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                    <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                    <p>
-                      Changing the slug{' '}
-                      <span className="font-medium">
-                        breaks existing storefront URLs
-                      </span>
-                      .
-                    </p>
-                  </div>
+                  <Callout variant="warning">
+                    Changing the slug{' '}
+                    <span className="font-medium">
+                      breaks existing storefront URLs
+                    </span>
+                    .
+                  </Callout>
                 )}
               </CardContent>
             </Card>
@@ -578,7 +593,7 @@ const ProductForm = ({
                   name={PRICE}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel required>Price (₹)</FormLabel>
+                      <FormLabel required>Price</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -587,6 +602,7 @@ const ProductForm = ({
                           step="0.01"
                           placeholder="0.00"
                           disabled={isPending}
+                          startAdornment={<RupeePrefix />}
                           name={field.name}
                           ref={field.ref}
                           onBlur={field.onBlur}
@@ -604,7 +620,7 @@ const ProductForm = ({
                   name={COMPARE_AT_PRICE}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel optional>Compare-at price (₹)</FormLabel>
+                      <FormLabel optional>Compare-at price</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -613,6 +629,7 @@ const ProductForm = ({
                           step="0.01"
                           placeholder="MRP / strike-through price"
                           disabled={isPending}
+                          startAdornment={<RupeePrefix />}
                           name={field.name}
                           ref={field.ref}
                           onBlur={field.onBlur}
@@ -622,17 +639,15 @@ const ProductForm = ({
                           }
                         />
                       </FormControl>
-                      {isEdit &&
-                        product?.discountPercentage != null &&
-                        !Number.isNaN(priceValue) && (
-                          <FormDescription>
-                            Currently shows a{' '}
-                            <Badge variant="secondary">
-                              {product.discountPercentage}% off
-                            </Badge>{' '}
-                            badge.
-                          </FormDescription>
-                        )}
+                      {liveDiscount !== null && (
+                        <FormDescription className="flex animate-in items-center gap-1.5 fade-in-0">
+                          Storefront shows a
+                          <Badge variant="destructive">
+                            {liveDiscount}% off
+                          </Badge>
+                          badge.
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -832,10 +847,9 @@ const ProductForm = ({
                           </FormControl>
                         </div>
                         {!isActiveValue && (
-                          <div className="mt-1 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-                            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                            <p>{DEACTIVATE_WARNING}</p>
-                          </div>
+                          <Callout variant="danger" className="mt-1">
+                            {DEACTIVATE_WARNING}
+                          </Callout>
                         )}
                       </FormItem>
                     )}
@@ -846,25 +860,14 @@ const ProductForm = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isPending}
-            startAdornment={
-              isPending ? <Loader2 className="animate-spin" /> : undefined
-            }
-          >
-            {isEdit ? 'Save changes' : 'Create product'}
-          </Button>
-        </div>
+        <FormActionBar
+          isDirty={isDirty}
+          isPending={isPending}
+          submitLabel={isEdit ? 'Save changes' : 'Create product'}
+          secondaryLabel="Cancel"
+          onSecondary={onCancel}
+          allowCleanSubmit
+        />
       </form>
     </Form>
   );

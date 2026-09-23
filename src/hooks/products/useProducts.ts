@@ -4,8 +4,12 @@ import { productsService } from '@/api/services/products';
 import { QUERY_KEYS } from '@/constants/query-key';
 import type { ProductListParams } from '@/types/api';
 
-export const useProducts = (params: ProductListParams = {}) =>
+export const useProducts = (
+  params: ProductListParams = {},
+  options: { enabled?: boolean } = {},
+) =>
   useQuery({
+    enabled: options.enabled,
     queryKey: QUERY_KEYS.PRODUCTS.LIST(params),
     queryFn: async () => {
       const response = await productsService.list(params);

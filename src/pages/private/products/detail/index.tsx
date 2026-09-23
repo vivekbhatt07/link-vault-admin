@@ -3,11 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router';
 import {
   ArrowLeft,
   Boxes,
+  ChevronRight,
   ExternalLink,
   FolderTree,
+  MessageCircle,
   PackageX,
   Pencil,
   Sparkles,
+  Star,
   Trash2,
   TrendingUp,
 } from 'lucide-react';
@@ -17,17 +20,51 @@ import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader } from '@/components/ui/loader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/constants/routes';
 import { formatDateTime, formatPrice } from '@/helpers/format';
 import { useDeleteProduct, useProduct } from '@/hooks/products';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
-import { AVAILABILITY_OPTIONS, PRODUCT_DELETE_CONFIRMATION } from '../constants';
+import { PRODUCT_DELETE_CONFIRMATION } from '../constants';
+import { AVAILABILITY_LABELS, availabilityVariant } from '../helpers';
 import ProductGallery from './layouts/ProductGallery';
 import ProductTestimonials from './layouts/ProductTestimonials';
 
-const AVAILABILITY_LABELS = Object.fromEntries(
-  AVAILABILITY_OPTIONS.map((option) => [option.value, option.label]),
+const DetailField = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-1">
+    <dt className="text-[11px] font-semibold tracking-wider text-stone-400 uppercase dark:text-stone-500">
+      {label}
+    </dt>
+    <dd className="text-sm text-stone-700 dark:text-stone-300">{children}</dd>
+  </div>
+);
+
+const ProductDetailSkeleton = () => (
+  <div
+    className="flex w-full flex-col gap-6"
+    role="status"
+    aria-label="Loading"
+  >
+    <Skeleton className="h-8 w-36" />
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-7 w-72 max-w-full" />
+      <Skeleton className="h-3 w-40" />
+    </div>
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <Skeleton className="aspect-square w-full rounded-xl" />
+      <div className="flex flex-col gap-6 lg:col-span-2">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-56 w-full rounded-xl" />
+      </div>
+    </div>
+  </div>
 );
 
 const ProductDetailPage = () => {
@@ -36,9 +73,10 @@ const ProductDetailPage = () => {
   const product = useProduct(slug);
   const deleteProduct = useDeleteProduct();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  useDocumentTitle(product.data?.name ?? 'Product');
 
   if (product.isPending) {
-    return <Loader centered className="my-24" />;
+    return <ProductDetailSkeleton />;
   }
 
   if (product.isError || !product.data) {
@@ -68,68 +106,72 @@ const ProductDetailPage = () => {
     });
   };
 
+  const hasCraftDetails =
+    item.material ||
+    item.dimensions ||
+    item.weight ||
+    item.careInstructions ||
+    item.specifications.length > 0;
+
   return (
     <div className="flex w-full flex-col gap-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link to={ROUTES.PRIVATE.PRODUCTS.ROOT}>
-          <ArrowLeft />
-          Back to products
+      <nav
+        aria-label="Breadcrumb"
+        className="flex flex-wrap items-center gap-1 text-xs text-stone-500 dark:text-stone-400"
+      >
+        <Link
+          to={ROUTES.PRIVATE.PRODUCTS.ROOT}
+          className="group flex items-center gap-1 rounded-md py-1 pr-1.5 font-medium transition-colors hover:text-stone-900 dark:hover:text-stone-50"
+        >
+          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+          Products
         </Link>
-      </Button>
+        {item.breadcrumbs.map((crumb) => (
+          <span key={crumb.id} className="flex items-center gap-1">
+            <ChevronRight className="size-3 text-stone-300 dark:text-stone-600" />
+            <Link
+              to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${crumb.id}`}
+              className="rounded-md px-1 py-1 transition-colors hover:text-stone-900 dark:hover:text-stone-50"
+            >
+              {crumb.name}
+            </Link>
+          </span>
+        ))}
+      </nav>
 
-      {item.breadcrumbs.length > 0 && (
-        <nav className="flex flex-wrap items-center gap-1 text-xs text-stone-400 dark:text-stone-500">
-          {item.breadcrumbs.map((crumb, index) => (
-            <span key={crumb.id} className="flex items-center gap-1">
-              {index > 0 && <span>/</span>}
-              <Link
-                to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${crumb.id}`}
-                className="hover:underline"
-              >
-                {crumb.name}
-              </Link>
-            </span>
-          ))}
-        </nav>
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-50">
-              {item.name}
-            </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
+            {item.name}
+          </h1>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant={item.isActive ? 'success' : 'destructive'}>
+              <span
+                aria-hidden
+                className="size-1.5 rounded-full bg-current opacity-80"
+              />
+              {item.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+            <Badge variant={availabilityVariant(item.availability)}>
+              {AVAILABILITY_LABELS[item.availability]}
+            </Badge>
             {item.isFeatured && (
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="size-3 text-amber-500" />
+              <Badge variant="warning">
+                <Sparkles />
                 Featured
               </Badge>
             )}
             {item.isBestseller && (
-              <Badge variant="secondary" className="gap-1">
-                <TrendingUp className="size-3 text-amber-500" />
+              <Badge variant="warning">
+                <TrendingUp />
                 Bestseller
               </Badge>
             )}
-            <Badge
-              variant={item.isActive ? 'outline' : 'destructive'}
-              className={
-                item.isActive
-                  ? 'border-green-200 text-green-700 dark:border-green-900 dark:text-green-400'
-                  : undefined
-              }
-            >
-              {item.isActive ? 'Active' : 'Inactive'}
-            </Badge>
-            <Badge
-              variant={item.availability === 'IN_STOCK' ? 'default' : 'secondary'}
-            >
-              {AVAILABILITY_LABELS[item.availability]}
-            </Badge>
+            <span className="ml-1 font-mono text-xs text-stone-400 dark:text-stone-500">
+              /{item.slug}
+              {item.sku && ` · SKU ${item.sku}`}
+            </span>
           </div>
-          <p className="font-mono text-xs text-stone-400 dark:text-stone-500">
-            /{item.slug} {item.sku && `· SKU ${item.sku}`}
-          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button variant="outline" asChild>
@@ -138,95 +180,75 @@ const ProductDetailPage = () => {
               Edit
             </Link>
           </Button>
-          <Button variant="destructive" onClick={() => setIsDeleteOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsDeleteOpen(true)}
+            className="text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:border-red-900/60 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+          >
             <Trash2 />
             Delete
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <ProductGallery images={item.images} name={item.name} />
-        </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <ProductGallery images={item.images} name={item.name} />
 
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="stagger flex flex-col gap-6 lg:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Overview</CardTitle>
-            </CardHeader>
             <CardContent>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-3">
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Price
-                  </dt>
-                  <dd className="mt-0.5 flex items-baseline gap-1.5">
-                    <span className="text-base font-semibold tabular-nums text-stone-900 dark:text-stone-50">
-                      {formatPrice(item.price)}
-                    </span>
-                    {item.compareAtPrice !== null && (
-                      <span className="text-xs tabular-nums text-stone-400 line-through dark:text-stone-500">
-                        {formatPrice(item.compareAtPrice)}
-                      </span>
-                    )}
-                    {item.discountPercentage !== null && (
-                      <Badge variant="destructive">
-                        {item.discountPercentage}% off
-                      </Badge>
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Stock
-                  </dt>
-                  <dd className="mt-0.5 flex items-center gap-1.5 font-medium tabular-nums text-stone-900 dark:text-stone-50">
+              <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+                <span className="text-3xl font-semibold tracking-tight tabular-nums text-stone-900 dark:text-stone-50">
+                  {formatPrice(item.price)}
+                </span>
+                {item.compareAtPrice !== null && (
+                  <span className="pb-1 text-sm tabular-nums text-stone-400 line-through dark:text-stone-500">
+                    {formatPrice(item.compareAtPrice)}
+                  </span>
+                )}
+                {item.discountPercentage !== null && (
+                  <Badge variant="destructive" className="mb-1.5">
+                    {item.discountPercentage}% off
+                  </Badge>
+                )}
+              </div>
+
+              <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-stone-100 pt-5 sm:grid-cols-3 dark:border-stone-800">
+                <DetailField label="Stock">
+                  <span className="flex items-center gap-1.5 font-medium tabular-nums text-stone-900 dark:text-stone-50">
                     <Boxes className="size-4 text-stone-400" />
                     {item.stock}
                     {item.stock === 0 && (
                       <Badge variant="destructive">Out of stock</Badge>
                     )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Category
-                  </dt>
-                  <dd className="mt-0.5 flex items-center gap-1.5 font-medium text-stone-900 dark:text-stone-50">
+                  </span>
+                </DetailField>
+                <DetailField label="Category">
+                  <Link
+                    to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${item.categoryId}`}
+                    className="flex items-center gap-1.5 font-medium text-stone-900 transition-colors hover:text-accent-600 dark:text-stone-50 dark:hover:text-accent-400"
+                  >
                     <FolderTree className="size-4 text-stone-400" />
-                    <Link
-                      to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${item.categoryId}`}
-                      className="hover:underline"
-                    >
-                      {item.category.name}
-                    </Link>
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Rating
-                  </dt>
-                  <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
-                    {item.avgRating.toFixed(1)} ({item.testimonialCount})
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Created
-                  </dt>
-                  <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
-                    {formatDateTime(item.createdAt)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-stone-500 dark:text-stone-400">
-                    Updated
-                  </dt>
-                  <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
-                    {formatDateTime(item.updatedAt)}
-                  </dd>
-                </div>
+                    {item.category.name}
+                  </Link>
+                </DetailField>
+                <DetailField label="Rating">
+                  <span className="flex items-center gap-1.5">
+                    <Star className="size-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-stone-900 tabular-nums dark:text-stone-50">
+                      {item.avgRating.toFixed(1)}
+                    </span>
+                    <span className="text-stone-400">
+                      ({item.testimonialCount})
+                    </span>
+                  </span>
+                </DetailField>
+                <DetailField label="Created">
+                  {formatDateTime(item.createdAt)}
+                </DetailField>
+                <DetailField label="Updated">
+                  {formatDateTime(item.updatedAt)}
+                </DetailField>
               </dl>
             </CardContent>
           </Card>
@@ -237,25 +259,28 @@ const ProductDetailPage = () => {
                 Description
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+            <CardContent className="flex flex-col gap-4">
               {item.shortDescription && (
-                <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
                   {item.shortDescription}
                 </p>
               )}
               {item.description ? (
-                <p className="text-sm leading-relaxed whitespace-pre-line text-stone-700 dark:text-stone-300">
+                <p className="text-sm leading-relaxed whitespace-pre-line text-stone-600 dark:text-stone-300">
                   {item.description}
                 </p>
               ) : (
-                <p className="text-sm text-stone-400 dark:text-stone-500">
-                  No description.
+                <p className="text-sm text-stone-400 italic dark:text-stone-500">
+                  No description yet.
                 </p>
               )}
               {item.highlights.length > 0 && (
-                <ul className="flex list-disc flex-col gap-1 pl-4 text-sm text-stone-700 dark:text-stone-300">
+                <ul className="flex flex-col gap-2 text-sm text-stone-700 dark:text-stone-300">
                   {item.highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
+                    <li key={highlight} className="flex items-start gap-2">
+                      <Sparkles className="mt-0.5 size-3.5 shrink-0 text-accent-500" />
+                      {highlight}
+                    </li>
                   ))}
                 </ul>
               )}
@@ -263,7 +288,7 @@ const ProductDetailPage = () => {
                 <div className="flex flex-wrap gap-1.5">
                   {item.tags.map((tag) => (
                     <Badge key={tag} variant="secondary">
-                      {tag}
+                      #{tag}
                     </Badge>
                   ))}
                 </div>
@@ -271,60 +296,52 @@ const ProductDetailPage = () => {
             </CardContent>
           </Card>
 
-          {(item.material || item.dimensions || item.weight ||
-            item.careInstructions || item.specifications.length > 0) && (
+          {hasCraftDetails && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-semibold">
                   Craft details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-                  {item.material && (
-                    <div>
-                      <dt className="text-xs text-stone-500 dark:text-stone-400">
-                        Material
-                      </dt>
-                      <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
+              <CardContent className="flex flex-col gap-5">
+                {(item.material || item.dimensions || item.weight) && (
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    {item.material && (
+                      <DetailField label="Material">
                         {item.material}
-                      </dd>
-                    </div>
-                  )}
-                  {item.dimensions && (
-                    <div>
-                      <dt className="text-xs text-stone-500 dark:text-stone-400">
-                        Dimensions
-                      </dt>
-                      <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
+                      </DetailField>
+                    )}
+                    {item.dimensions && (
+                      <DetailField label="Dimensions">
                         {item.dimensions}
-                      </dd>
-                    </div>
-                  )}
-                  {item.weight && (
-                    <div>
-                      <dt className="text-xs text-stone-500 dark:text-stone-400">
-                        Weight
-                      </dt>
-                      <dd className="mt-0.5 text-stone-700 dark:text-stone-300">
-                        {item.weight}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
+                      </DetailField>
+                    )}
+                    {item.weight && (
+                      <DetailField label="Weight">{item.weight}</DetailField>
+                    )}
+                  </dl>
+                )}
                 {item.careInstructions && (
-                  <p className="text-sm leading-relaxed whitespace-pre-line text-stone-700 dark:text-stone-300">
-                    {item.careInstructions}
-                  </p>
+                  <div className="rounded-lg bg-stone-50 px-3 py-2.5 dark:bg-stone-800/40">
+                    <p className="text-[11px] font-semibold tracking-wider text-stone-400 uppercase dark:text-stone-500">
+                      Care instructions
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed whitespace-pre-line text-stone-700 dark:text-stone-300">
+                      {item.careInstructions}
+                    </p>
+                  </div>
                 )}
                 {item.specifications.length > 0 && (
-                  <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                  <dl className="divide-y divide-stone-100 overflow-hidden rounded-lg border border-stone-100 text-sm dark:divide-stone-800 dark:border-stone-800">
                     {item.specifications.map((spec) => (
-                      <div key={spec.label} className="flex justify-between gap-2 border-b border-stone-100 pb-1.5 dark:border-stone-800">
+                      <div
+                        key={spec.label}
+                        className="flex justify-between gap-4 px-3 py-2 odd:bg-stone-50/60 dark:odd:bg-stone-800/20"
+                      >
                         <dt className="text-stone-500 dark:text-stone-400">
                           {spec.label}
                         </dt>
-                        <dd className="text-right font-medium text-stone-700 dark:text-stone-300">
+                        <dd className="text-right font-medium text-stone-800 dark:text-stone-200">
                           {spec.value}
                         </dd>
                       </div>
@@ -342,29 +359,33 @@ const ProductDetailPage = () => {
                   Where to buy
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-2">
+              <CardContent className="flex flex-wrap gap-2">
                 {item.whatsappUrl && (
-                  <a
-                    href={item.whatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-fit items-center gap-1.5 text-sm font-medium text-accent-600 hover:underline dark:text-accent-400"
+                  <Button
+                    asChild
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500"
                   >
-                    WhatsApp
-                    <ExternalLink className="size-3.5" />
-                  </a>
+                    <a href={item.whatsappUrl} target="_blank" rel="noreferrer">
+                      <MessageCircle />
+                      WhatsApp
+                      <ExternalLink className="size-3.5 opacity-70" />
+                    </a>
+                  </Button>
                 )}
                 {item.purchaseLinks.map((link, index) => (
-                  <a
+                  <Button
                     key={`${link.url}-${index}`}
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-fit items-center gap-1.5 text-sm font-medium text-accent-600 hover:underline dark:text-accent-400"
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="group"
                   >
-                    {link.label || link.platform}
-                    <ExternalLink className="size-3.5" />
-                  </a>
+                    <a href={link.url} target="_blank" rel="noreferrer">
+                      {link.label || link.platform}
+                      <ExternalLink className="size-3.5 text-stone-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </a>
+                  </Button>
                 ))}
               </CardContent>
             </Card>

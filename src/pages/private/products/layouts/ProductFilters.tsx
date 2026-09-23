@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import type { ProductAvailability, ProductSort } from '@/types/api';
 
 import { AVAILABILITY_OPTIONS, FILTER_ALL, SORT_OPTIONS } from '../constants';
@@ -31,16 +32,27 @@ type TProductFiltersProps = {
 };
 
 const FEATURED_OPTIONS = [
-  { value: FILTER_ALL, label: 'All products' },
-  { value: 'true', label: 'Featured only' },
-  { value: 'false', label: 'Not featured' },
+  { value: FILTER_ALL, label: 'Any' },
+  { value: 'true', label: 'Yes' },
+  { value: 'false', label: 'No' },
 ] as const;
 
 const BESTSELLER_OPTIONS = [
-  { value: FILTER_ALL, label: 'All products' },
-  { value: 'true', label: 'Bestsellers only' },
-  { value: 'false', label: 'Not bestsellers' },
+  { value: FILTER_ALL, label: 'Any' },
+  { value: 'true', label: 'Yes' },
+  { value: 'false', label: 'No' },
 ] as const;
+
+/** Muted prefix inside a filter trigger: "Featured: Any". */
+const FilterLabel = ({ children }: { children: React.ReactNode }) => (
+  <span className="shrink-0 text-stone-400 dark:text-stone-500">
+    {children}:
+  </span>
+);
+
+/** Accent outline marking a select whose filter is currently applied. */
+const activeFilterClass =
+  'border-accent-300 bg-accent-50/60 text-accent-800 dark:border-accent-800 dark:bg-accent-950/30 dark:text-accent-200';
 
 /** Every filter here (incl. search) is a server-side query param. */
 const ProductFilters = ({
@@ -58,12 +70,14 @@ const ProductFilters = ({
   onSearchChange,
   onClear,
 }: TProductFiltersProps) => {
-  const hasFilters =
-    Boolean(categoryId) ||
-    isFeatured !== undefined ||
-    isBestseller !== undefined ||
-    Boolean(availability) ||
-    search.length > 0;
+  const activeFilterCount = [
+    Boolean(categoryId),
+    isFeatured !== undefined,
+    isBestseller !== undefined,
+    Boolean(availability),
+    search.length > 0,
+  ].filter(Boolean).length;
+  const hasFilters = activeFilterCount > 0;
 
   return (
     <div className="flex flex-col gap-3">
@@ -117,7 +131,14 @@ const ProductFilters = ({
             )
           }
         >
-          <SelectTrigger className="w-40" aria-label="Filter by featured">
+          <SelectTrigger
+            className={cn(
+              'w-auto min-w-36',
+              isFeatured !== undefined && activeFilterClass,
+            )}
+            aria-label="Filter by featured"
+          >
+            <FilterLabel>Featured</FilterLabel>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -137,7 +158,14 @@ const ProductFilters = ({
             )
           }
         >
-          <SelectTrigger className="w-44" aria-label="Filter by bestseller">
+          <SelectTrigger
+            className={cn(
+              'w-auto min-w-36',
+              isBestseller !== undefined && activeFilterClass,
+            )}
+            aria-label="Filter by bestseller"
+          >
+            <FilterLabel>Bestseller</FilterLabel>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -157,11 +185,15 @@ const ProductFilters = ({
             )
           }
         >
-          <SelectTrigger className="w-44" aria-label="Filter by availability">
-            <SelectValue placeholder="All availability" />
+          <SelectTrigger
+            className={cn('w-auto min-w-44', availability && activeFilterClass)}
+            aria-label="Filter by availability"
+          >
+            <FilterLabel>Availability</FilterLabel>
+            <SelectValue placeholder="All" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={FILTER_ALL}>All availability</SelectItem>
+            <SelectItem value={FILTER_ALL}>All</SelectItem>
             {AVAILABILITY_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -176,8 +208,12 @@ const ProductFilters = ({
             size="sm"
             onClick={onClear}
             startAdornment={<X />}
+            className="animate-in text-stone-500 fade-in-0 slide-in-from-left-1"
           >
-            Clear
+            Clear filters
+            <span className="rounded-full bg-stone-200 px-1.5 text-[10px] font-semibold tabular-nums text-stone-700 dark:bg-stone-700 dark:text-stone-200">
+              {activeFilterCount}
+            </span>
           </Button>
         )}
       </div>

@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { ShieldCheck, UserRound } from 'lucide-react';
 
+import FormActionBar from '@/components/custom/FormActionBar';
 import ImageUrlInput from '@/components/custom/ImageUrlInput';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -18,10 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { applyApiFieldErrors, pickChangedFields } from '@/helpers/form';
+import { formatDate, getDisplayName, getInitials } from '@/helpers/format';
 import { useUpdateProfile } from '@/hooks/auth';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { useAuthStore } from '@/store/authStore';
 import type { UpdateProfilePayload, User } from '@/types/api';
 
+import SettingsSection from '../components/SettingsSection';
 import { PROFILE_FORM_FIELD_NAMES, PROFILE_LIMITS } from './constants';
 import { profileFormSchema } from './schemas';
 import type { TProfileFormData } from './types';
@@ -51,6 +56,19 @@ const ProfilePage = () => {
   }, [user, form]);
 
   const bioValue = form.watch(BIO) ?? '';
+  const avatarValue = form.watch(AVATAR);
+  const firstNameValue = form.watch(FIRST_NAME);
+  const lastNameValue = form.watch(LAST_NAME);
+  const emailValue = form.watch(EMAIL);
+  const isDirty = form.formState.isDirty;
+  useUnsavedChangesWarning(isDirty && !updateProfile.isPending);
+
+  // The identity card previews unsaved edits live.
+  const preview = {
+    firstName: firstNameValue || null,
+    lastName: lastNameValue || null,
+    email: emailValue,
+  };
 
   const handleSubmit = (data: TProfileFormData) => {
     const changed = pickChangedFields(toFormData(user), data);
@@ -74,60 +92,157 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-foreground">Profile</h3>
-          {user && <Badge variant="secondary">{user.role}</Badge>}
+    <div className="flex flex-col gap-6">
+      <Card className="relative overflow-hidden py-0 sm:py-0 md:py-0">
+        <div
+          aria-hidden
+          className="h-20 bg-linear-to-r from-accent-400/30 via-accent-500/20 to-accent-300/10 dark:from-accent-500/25 dark:via-accent-600/15 dark:to-transparent"
+        />
+        <div className="flex flex-col gap-4 px-4 pb-5 sm:flex-row sm:items-end sm:px-6">
+          <Avatar className="-mt-10 size-20 border-4 border-white shadow-md dark:border-stone-900">
+            <AvatarImage
+              src={avatarValue || undefined}
+              alt={getDisplayName(preview)}
+            />
+            <AvatarFallback className="bg-accent-50 text-xl font-semibold text-accent-700 dark:bg-accent-950 dark:text-accent-300">
+              {getInitials(preview)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex min-w-0 flex-1 flex-col gap-1 pb-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-lg font-semibold text-stone-900 dark:text-stone-50">
+                {getDisplayName(preview)}
+              </p>
+              {user && (
+                <Badge variant="accent">
+                  <ShieldCheck />
+                  {user.role === 'ADMIN' ? 'Admin' : user.role}
+                </Badge>
+              )}
+            </div>
+            <p className="truncate text-sm text-stone-500 dark:text-stone-400">
+              {emailValue}
+              {user?.createdAt && ` · Joined ${formatDate(user.createdAt)}`}
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          How you appear across the admin panel.
-        </p>
-      </div>
+      </Card>
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
           className="flex flex-col gap-6"
         >
-          <FormField
-            control={form.control}
-            name={AVATAR}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel optional>Profile photo</FormLabel>
-                <FormControl>
-                  <ImageUrlInput
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    rounded="full"
-                    alt="Avatar preview"
-                    placeholder="https://example.com/avatar.jpg"
-                    disabled={updateProfile.isPending}
-                    variant="avatar"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Upload a photo or paste an image URL.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SettingsSection
+            icon={<UserRound />}
+            title="Personal details"
+            description="How you appear across the admin panel."
+          >
             <FormField
               control={form.control}
-              name={FIRST_NAME}
+              name={AVATAR}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel optional>First name</FormLabel>
+                  <FormLabel optional>Profile photo</FormLabel>
+                  <FormControl>
+                    <ImageUrlInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      rounded="full"
+                      alt="Avatar preview"
+                      placeholder="https://example.com/avatar.jpg"
+                      disabled={updateProfile.isPending}
+                      variant="avatar"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Upload a photo or paste an image URL.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name={FIRST_NAME}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel optional>First name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Vivek"
+                        maxLength={PROFILE_LIMITS.NAME_MAX}
+                        autoComplete="given-name"
+                        disabled={updateProfile.isPending}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={LAST_NAME}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel optional>Last name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Bhatt"
+                        maxLength={PROFILE_LIMITS.NAME_MAX}
+                        autoComplete="family-name"
+                        disabled={updateProfile.isPending}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name={EMAIL}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Vivek"
-                      maxLength={PROFILE_LIMITS.NAME_MAX}
-                      autoComplete="given-name"
+                      type="email"
+                      placeholder="admin@example.com"
+                      autoComplete="email"
+                      disabled={updateProfile.isPending}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Used to sign in to this panel.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={BIO}
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel optional>Bio</FormLabel>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {bioValue.length}/{PROFILE_LIMITS.BIO_MAX}
+                    </span>
+                  </div>
+                  <FormControl>
+                    <Textarea
+                      placeholder="A short note about yourself…"
+                      rows={4}
                       disabled={updateProfile.isPending}
                       {...field}
                     />
@@ -136,95 +251,16 @@ const ProfilePage = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name={LAST_NAME}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel optional>Last name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Bhatt"
-                      maxLength={PROFILE_LIMITS.NAME_MAX}
-                      autoComplete="family-name"
-                      disabled={updateProfile.isPending}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          </SettingsSection>
 
-          <FormField
-            control={form.control}
-            name={EMAIL}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="admin@example.com"
-                    autoComplete="email"
-                    disabled={updateProfile.isPending}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Used to sign in to this panel.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <FormActionBar
+            isDirty={isDirty}
+            isPending={updateProfile.isPending}
+            submitLabel="Save changes"
+            secondaryLabel="Reset"
+            onSecondary={() => form.reset(toFormData(user))}
+            secondaryRequiresDirty
           />
-
-          <FormField
-            control={form.control}
-            name={BIO}
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel optional>Bio</FormLabel>
-                  <span className="text-xs text-muted-foreground">
-                    {bioValue.length}/{PROFILE_LIMITS.BIO_MAX}
-                  </span>
-                </div>
-                <FormControl>
-                  <Textarea
-                    placeholder="A short note about yourself…"
-                    rows={4}
-                    disabled={updateProfile.isPending}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => form.reset(toFormData(user))}
-              disabled={!form.formState.isDirty || updateProfile.isPending}
-            >
-              Reset
-            </Button>
-            <Button
-              type="submit"
-              disabled={!form.formState.isDirty || updateProfile.isPending}
-              startAdornment={
-                updateProfile.isPending ? (
-                  <Loader2 className="animate-spin" />
-                ) : undefined
-              }
-            >
-              Save changes
-            </Button>
-          </div>
         </form>
       </Form>
     </div>

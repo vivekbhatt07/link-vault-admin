@@ -1,7 +1,8 @@
 import { Link as RouterLink } from 'react-router';
 import {
-  AlertTriangle,
   ArrowRight,
+  ChevronRight,
+  FolderPlus,
   FolderTree,
   MessageSquare,
   Package,
@@ -10,7 +11,9 @@ import {
   Star,
   Users,
 } from 'lucide-react';
+import dayjs from 'dayjs';
 
+import Callout from '@/components/custom/Callout';
 import EmptyState from '@/components/custom/EmptyState';
 import ImageThumb from '@/components/custom/ImageThumb';
 import PageHeader from '@/components/custom/PageHeader';
@@ -19,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/constants/routes';
 import {
   formatDate,
@@ -28,14 +32,72 @@ import {
   getInitials,
 } from '@/helpers/format';
 import { useCategories } from '@/hooks/categories';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProducts } from '@/hooks/products';
 import { useSettings } from '@/hooks/settings';
 import { useAllTestimonials } from '@/hooks/testimonials';
 import { useUsers } from '@/hooks/users';
+import { useAuthStore } from '@/store/authStore';
 
 import StatCard from './layouts/StatCard';
 
 const RECENT_LIMIT = 5;
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const ListSkeletonRows = ({ avatar }: { avatar: 'square' | 'circle' }) => (
+  <ul className="divide-y divide-stone-100 dark:divide-stone-800">
+    {Array.from({ length: 3 }).map((_, index) => (
+      <li
+        key={index}
+        className="flex items-center gap-3 px-3 py-3 sm:px-4 md:px-6"
+      >
+        <Skeleton
+          className={
+            avatar === 'circle' ? 'size-9 rounded-full' : 'size-10 rounded-md'
+          }
+        />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-3 w-1/2 rounded" />
+          <Skeleton className="h-2.5 w-1/4 rounded" />
+        </div>
+      </li>
+    ))}
+  </ul>
+);
+
+const PanelHeader = ({
+  icon,
+  title,
+  to,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  to: string;
+}) => (
+  <CardHeader className="flex flex-row items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+      <span className="text-stone-400 [&_svg]:size-4">{icon}</span>
+      {title}
+    </CardTitle>
+    <Button
+      variant="ghost"
+      size="sm"
+      asChild
+      className="group/view -mr-2 gap-1 text-xs text-stone-500"
+    >
+      <RouterLink to={to}>
+        View all
+        <ArrowRight className="size-3.5 transition-transform group-hover/view:translate-x-0.5" />
+      </RouterLink>
+    </Button>
+  </CardHeader>
+);
 
 /**
  * There is no stats endpoint. Every number here is a `total` (or array
@@ -44,6 +106,8 @@ const RECENT_LIMIT = 5;
  * the 100-req/15-min rate limit.
  */
 const DashboardPage = () => {
+  useDocumentTitle('Dashboard');
+  const user = useAuthStore((state) => state.user);
   const categories = useCategories({ includeInactive: true });
   const totalProducts = useProducts({ includeInactive: true, limit: 1 });
   const recentProducts = useProducts({ limit: RECENT_LIMIT });
@@ -62,87 +126,95 @@ const DashboardPage = () => {
   const latestTestimonials = testimonials.data?.items ?? [];
   const whatsappConfigured = Boolean(settings.data?.whatsappNumber);
 
+  const greeting = user?.firstName
+    ? `${getGreeting()}, ${user.firstName}`
+    : getGreeting();
+
   return (
     <div className="flex w-full flex-col gap-8">
       <PageHeader
-        title="Dashboard"
-        description="An overview of the Pahadi Shilpkar catalog."
+        title={greeting}
+        description={`${dayjs().format('dddd, D MMMM')} · Here's what's happening in the Pahadi Shilpkar catalog.`}
         actions={
-          <Button asChild>
-            <RouterLink to={ROUTES.PRIVATE.PRODUCTS.CREATE}>
-              <Plus />
-              New product
-            </RouterLink>
-          </Button>
+          <>
+            <Button variant="outline" asChild className="hidden sm:inline-flex">
+              <RouterLink to={`${ROUTES.PRIVATE.CATEGORIES}?new=1`}>
+                <FolderPlus />
+                New category
+              </RouterLink>
+            </Button>
+            <Button asChild>
+              <RouterLink to={ROUTES.PRIVATE.PRODUCTS.CREATE}>
+                <Plus />
+                New product
+              </RouterLink>
+            </Button>
+          </>
         }
       />
 
       {!settings.isPending && !whatsappConfigured && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-          <div className="flex-1">
-            <p className="font-medium">The WhatsApp buy button is off</p>
-            <p className="text-amber-800/80 dark:text-amber-200/70">
-              Set a WhatsApp number in Store settings so every product gets a
-              working buy button.
-            </p>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <RouterLink to={ROUTES.PRIVATE.SETTINGS.STORE}>
-              Set it up
-            </RouterLink>
-          </Button>
-        </div>
+        <Callout
+          variant="warning"
+          size="md"
+          title="The WhatsApp buy button is off"
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <RouterLink to={ROUTES.PRIVATE.SETTINGS.STORE}>
+                Set it up
+              </RouterLink>
+            </Button>
+          }
+        >
+          Set a WhatsApp number in Store settings so every product gets a
+          working buy button.
+        </Callout>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
         <StatCard
-          icon={
-            <FolderTree className="size-5 text-stone-500 dark:text-stone-400" />
-          }
+          icon={<FolderTree />}
+          tone="violet"
           label="Categories"
           value={categoryCount}
           isLoading={categories.isPending}
           to={ROUTES.PRIVATE.CATEGORIES}
         />
         <StatCard
-          icon={
-            <Package className="size-5 text-stone-500 dark:text-stone-400" />
-          }
+          icon={<Package />}
+          tone="accent"
           label="Total products"
           value={totalProductCount}
           isLoading={totalProducts.isPending}
           to={ROUTES.PRIVATE.PRODUCTS.ROOT}
         />
         <StatCard
-          icon={
-            <PackageCheck className="size-5 text-stone-500 dark:text-stone-400" />
-          }
+          icon={<PackageCheck />}
+          tone="emerald"
           label="Active products"
           value={activeProductCount}
           isLoading={recentProducts.isPending}
           to={ROUTES.PRIVATE.PRODUCTS.ROOT}
         />
         <StatCard
-          icon={<Star className="size-5 text-amber-500" />}
+          icon={<Star />}
+          tone="amber"
           label="Featured products"
           value={featuredProductCount}
           isLoading={featuredProducts.isPending}
           to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?isFeatured=true`}
         />
         <StatCard
-          icon={
-            <Users className="size-5 text-stone-500 dark:text-stone-400" />
-          }
+          icon={<Users />}
+          tone="sky"
           label="Customers"
           value={customerCount}
           isLoading={customers.isPending}
           to={ROUTES.PRIVATE.CUSTOMERS}
         />
         <StatCard
-          icon={
-            <MessageSquare className="size-5 text-stone-500 dark:text-stone-400" />
-          }
+          icon={<MessageSquare />}
+          tone="rose"
           label="Testimonials"
           value={testimonialCount}
           isLoading={testimonials.isPending}
@@ -150,64 +222,52 @@ const DashboardPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold">
-              Recent products
-            </CardTitle>
-            <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs">
-              <RouterLink to={ROUTES.PRIVATE.PRODUCTS.ROOT}>
-                View all
-                <ArrowRight className="size-3.5" />
-              </RouterLink>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0">
+      <div className="grid animate-fade-up grid-cols-1 gap-6 [animation-delay:120ms] lg:grid-cols-2">
+        <Card className="gap-0 sm:gap-0 md:gap-0">
+          <PanelHeader
+            icon={<Package />}
+            title="Recent products"
+            to={ROUTES.PRIVATE.PRODUCTS.ROOT}
+          />
+          <CardContent className="px-0 sm:px-0 md:px-0">
             {recentProducts.isPending ? (
-              <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <li key={index} className="flex items-center gap-3 px-4 py-3">
-                    <div className="size-10 animate-pulse rounded-md bg-stone-100 dark:bg-stone-800" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-1/2 animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
-                      <div className="h-2.5 w-1/4 animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <ListSkeletonRows avatar="square" />
             ) : recentItems.length > 0 ? (
               <ul className="divide-y divide-stone-100 dark:divide-stone-800">
                 {recentItems.map((product) => (
                   <li key={product.id}>
                     <RouterLink
                       to={ROUTES.PRIVATE.PRODUCTS.DETAIL(product.slug)}
-                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/50"
+                      className="group flex items-center gap-3 px-3 py-3 transition-colors outline-none hover:bg-stone-50 focus-visible:bg-stone-50 sm:px-4 md:px-6 dark:hover:bg-stone-800/40 dark:focus-visible:bg-stone-800/40"
                     >
                       <ImageThumb
                         src={product.images[0]}
                         alt={product.name}
-                        className="size-10"
+                        className="size-10 transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm leading-snug font-medium text-stone-900 dark:text-stone-50">
                           {product.name}
                         </p>
-                        <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">
+                        <p className="mt-0.5 truncate text-xs text-stone-400 dark:text-stone-500">
                           {product.category.name} ·{' '}
                           {formatDate(product.createdAt)}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {product.isFeatured && (
-                          <Badge variant="secondary" className="gap-1">
-                            <Star className="size-3 text-amber-500" />
+                          <Badge
+                            variant="warning"
+                            className="hidden gap-1 sm:inline-flex"
+                          >
+                            <Star className="fill-current" />
                             Featured
                           </Badge>
                         )}
                         <span className="text-sm font-medium tabular-nums text-stone-900 dark:text-stone-50">
                           {formatPrice(product.price)}
                         </span>
+                        <ChevronRight className="size-4 -translate-x-1 text-stone-300 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 dark:text-stone-600" />
                       </div>
                     </RouterLink>
                   </li>
@@ -232,35 +292,22 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-semibold">
-              Latest testimonials
-            </CardTitle>
-            <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs">
-              <RouterLink to={ROUTES.PRIVATE.TESTIMONIALS}>
-                View all
-                <ArrowRight className="size-3.5" />
-              </RouterLink>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0">
+        <Card className="gap-0 sm:gap-0 md:gap-0">
+          <PanelHeader
+            icon={<MessageSquare />}
+            title="Latest testimonials"
+            to={ROUTES.PRIVATE.TESTIMONIALS}
+          />
+          <CardContent className="px-0 sm:px-0 md:px-0">
             {testimonials.isPending ? (
-              <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <li key={index} className="flex items-center gap-3 px-4 py-3">
-                    <div className="size-9 shrink-0 animate-pulse rounded-full bg-stone-100 dark:bg-stone-800" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-1/2 animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
-                      <div className="h-2.5 w-3/4 animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <ListSkeletonRows avatar="circle" />
             ) : latestTestimonials.length > 0 ? (
               <ul className="divide-y divide-stone-100 dark:divide-stone-800">
                 {latestTestimonials.map((testimonial) => (
-                  <li key={testimonial.id} className="flex gap-3 px-4 py-3">
+                  <li
+                    key={testimonial.id}
+                    className="flex gap-3 px-3 py-3 transition-colors hover:bg-stone-50/60 sm:px-4 md:px-6 dark:hover:bg-stone-800/20"
+                  >
                     <Avatar className="size-9 shrink-0 border border-stone-200 dark:border-stone-800">
                       <AvatarImage
                         src={testimonial.user.avatar || undefined}
@@ -277,14 +324,14 @@ const DashboardPage = () => {
                         </p>
                         <RatingStars rating={testimonial.rating} size={12} />
                       </div>
-                      <p className="mt-0.5 line-clamp-1 text-xs text-stone-500 dark:text-stone-400">
-                        {testimonial.content}
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+                        “{testimonial.content}”
                       </p>
                       <RouterLink
                         to={ROUTES.PRIVATE.PRODUCTS.DETAIL(
                           testimonial.product.slug,
                         )}
-                        className="mt-0.5 block text-xs text-stone-400 hover:underline dark:text-stone-500"
+                        className="mt-1 block truncate text-xs text-stone-400 transition-colors hover:text-accent-600 dark:text-stone-500 dark:hover:text-accent-400"
                       >
                         on {testimonial.product.name} ·{' '}
                         {formatDateTime(testimonial.createdAt)}

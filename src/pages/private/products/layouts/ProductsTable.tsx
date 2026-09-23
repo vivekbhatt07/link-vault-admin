@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Eye, Pencil, Trash2, TrendingUp } from 'lucide-react';
+import { Eye, Pencil, Star, Trash2, TrendingUp } from 'lucide-react';
 
 import ImageThumb from '@/components/custom/ImageThumb';
 import { Badge } from '@/components/ui/badge';
@@ -13,11 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SimpleTooltip } from '@/components/ui/tooltip';
 import { ROUTES } from '@/constants/routes';
 import { formatDate, formatPrice } from '@/helpers/format';
-import type { Product, ProductAvailability } from '@/types/api';
+import { cn } from '@/lib/utils';
+import type { Product } from '@/types/api';
 
-import { AVAILABILITY_OPTIONS } from '../constants';
+import { LOW_STOCK_THRESHOLD } from '../constants';
+import { AVAILABILITY_LABELS, availabilityVariant } from '../helpers';
 
 type TProductsTableProps = {
   products: Product[];
@@ -28,17 +31,6 @@ type TProductsTableProps = {
   onDelete: (product: Product) => void;
 };
 
-const AVAILABILITY_LABELS = Object.fromEntries(
-  AVAILABILITY_OPTIONS.map((option) => [option.value, option.label]),
-) as Record<ProductAvailability, string>;
-
-const availabilityVariant = (availability: ProductAvailability) =>
-  availability === 'IN_STOCK'
-    ? 'default'
-    : availability === 'OUT_OF_STOCK'
-      ? 'destructive'
-      : 'secondary';
-
 const ProductsTable = ({
   products,
   isBusy,
@@ -47,7 +39,7 @@ const ProductsTable = ({
   onDeactivate,
   onDelete,
 }: TProductsTableProps) => (
-  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white dark:border-stone-700/60 dark:bg-stone-900">
+  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-700/60 dark:bg-stone-900">
     <Table>
       <TableHeader className="bg-stone-50 dark:bg-stone-800/50">
         <TableRow>
@@ -60,35 +52,44 @@ const ProductsTable = ({
             Availability
           </TableHead>
           <TableHead className="hidden lg:table-cell">Category</TableHead>
-          <TableHead className="w-24 text-center">Featured</TableHead>
+          <TableHead className="w-20 text-center">Featured</TableHead>
           <TableHead className="w-20 text-center">Active</TableHead>
-          <TableHead className="hidden w-32 xl:table-cell">Updated</TableHead>
-          <TableHead className="w-28 text-right">Actions</TableHead>
+          <TableHead className="hidden w-32 2xl:table-cell">Updated</TableHead>
+          <TableHead className="w-28 text-right">
+            <span className="sr-only">Actions</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {products.map((product) => (
-          <TableRow key={product.id}>
+          <TableRow key={product.id} className="group">
             <TableCell>
-              <div className="flex min-w-0 items-center gap-3">
+              <div
+                className={cn(
+                  'flex min-w-0 items-center gap-3 transition-opacity',
+                  !product.isActive && 'opacity-60 group-hover:opacity-100',
+                )}
+              >
                 <ImageThumb
                   src={product.images[0]}
                   alt={product.name}
-                  className="size-10"
+                  className="size-10 transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <Link
                       to={ROUTES.PRIVATE.PRODUCTS.DETAIL(product.slug)}
-                      className="line-clamp-1 text-sm leading-snug font-medium text-stone-900 transition-colors hover:text-accent-600 dark:text-stone-50 dark:hover:text-accent-400"
+                      className="line-clamp-2 text-sm leading-snug font-medium text-stone-900 transition-colors hover:text-accent-600 dark:text-stone-50 dark:hover:text-accent-400"
                     >
                       {product.name}
                     </Link>
                     {product.isBestseller && (
-                      <TrendingUp
-                        className="size-3.5 shrink-0 text-amber-500"
-                        aria-label="Bestseller"
-                      />
+                      <SimpleTooltip label="Bestseller">
+                        <TrendingUp
+                          className="size-3.5 shrink-0 text-amber-500"
+                          aria-label="Bestseller"
+                        />
+                      </SimpleTooltip>
                     )}
                     {!product.isActive && (
                       <Badge variant="secondary" className="shrink-0">
@@ -119,6 +120,10 @@ const ProductsTable = ({
             <TableCell className="hidden text-right tabular-nums sm:table-cell">
               {product.stock === 0 ? (
                 <Badge variant="destructive">0</Badge>
+              ) : product.stock <= LOW_STOCK_THRESHOLD ? (
+                <SimpleTooltip label="Low stock">
+                  <Badge variant="warning">{product.stock}</Badge>
+                </SimpleTooltip>
               ) : (
                 <span className="text-sm text-stone-700 dark:text-stone-300">
                   {product.stock}
@@ -128,27 +133,54 @@ const ProductsTable = ({
 
             <TableCell className="hidden md:table-cell">
               <Badge variant={availabilityVariant(product.availability)}>
+                <span
+                  aria-hidden
+                  className="size-1.5 rounded-full bg-current opacity-80"
+                />
                 {AVAILABILITY_LABELS[product.availability]}
               </Badge>
             </TableCell>
 
             <TableCell className="hidden lg:table-cell">
-              <Badge variant="secondary">{product.category.name}</Badge>
+              <Link
+                to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${product.categoryId}`}
+                className="inline-flex"
+              >
+                <Badge
+                  variant="secondary"
+                  className="transition-colors hover:bg-stone-200 dark:hover:bg-stone-700"
+                >
+                  {product.category.name}
+                </Badge>
+              </Link>
             </TableCell>
 
             <TableCell className="text-center">
-              <Switch
-                checked={product.isFeatured}
-                onCheckedChange={(checked) =>
-                  onToggleFeatured(product, checked)
-                }
-                disabled={isBusy}
-                aria-label={
-                  product.isFeatured
-                    ? `Remove ${product.name} from featured`
-                    : `Feature ${product.name}`
-                }
-              />
+              <SimpleTooltip
+                label={product.isFeatured ? 'Remove from featured' : 'Feature'}
+              >
+                <button
+                  type="button"
+                  onClick={() => onToggleFeatured(product, !product.isFeatured)}
+                  disabled={isBusy}
+                  aria-pressed={product.isFeatured}
+                  aria-label={
+                    product.isFeatured
+                      ? `Remove ${product.name} from featured`
+                      : `Feature ${product.name}`
+                  }
+                  className="group/star inline-flex size-8 cursor-pointer items-center justify-center rounded-lg transition-all outline-none hover:bg-amber-50 focus-visible:ring-4 focus-visible:ring-amber-500/20 active:scale-90 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-amber-950/30"
+                >
+                  <Star
+                    className={cn(
+                      'size-4 transition-all duration-200 group-hover/star:scale-110',
+                      product.isFeatured
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-stone-300 group-hover/star:text-amber-400 dark:text-stone-600',
+                    )}
+                  />
+                </button>
+              </SimpleTooltip>
             </TableCell>
 
             <TableCell className="text-center">
@@ -166,41 +198,43 @@ const ProductsTable = ({
               />
             </TableCell>
 
-            <TableCell className="hidden text-xs whitespace-nowrap text-stone-500 xl:table-cell dark:text-stone-400">
+            <TableCell className="hidden text-xs whitespace-nowrap text-stone-500 2xl:table-cell dark:text-stone-400">
               {formatDate(product.updatedAt)}
             </TableCell>
 
             <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  asChild
-                  aria-label="View"
-                >
-                  <Link to={ROUTES.PRIVATE.PRODUCTS.DETAIL(product.slug)}>
-                    <Eye className="text-stone-400" />
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  asChild
-                  aria-label="Edit"
-                >
-                  <Link to={ROUTES.PRIVATE.PRODUCTS.EDIT(product.slug)}>
-                    <Pencil className="text-stone-400" />
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => onDelete(product)}
-                  aria-label={`Delete ${product.name}`}
-                  className="text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 />
-                </Button>
+              <div className="flex items-center justify-end gap-0.5">
+                <SimpleTooltip label="View">
+                  <Button variant="ghost" size="icon-sm" asChild>
+                    <Link
+                      to={ROUTES.PRIVATE.PRODUCTS.DETAIL(product.slug)}
+                      aria-label={`View ${product.name}`}
+                    >
+                      <Eye className="text-stone-400" />
+                    </Link>
+                  </Button>
+                </SimpleTooltip>
+                <SimpleTooltip label="Edit">
+                  <Button variant="ghost" size="icon-sm" asChild>
+                    <Link
+                      to={ROUTES.PRIVATE.PRODUCTS.EDIT(product.slug)}
+                      aria-label={`Edit ${product.name}`}
+                    >
+                      <Pencil className="text-stone-400" />
+                    </Link>
+                  </Button>
+                </SimpleTooltip>
+                <SimpleTooltip label="Delete">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onDelete(product)}
+                    aria-label={`Delete ${product.name}`}
+                    className="text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 />
+                  </Button>
+                </SimpleTooltip>
               </div>
             </TableCell>
           </TableRow>

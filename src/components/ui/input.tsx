@@ -65,20 +65,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           data-slot="input"
           className={cn(
             // base
-            'h-9 w-full min-w-0 rounded-lg border border-stone-200 bg-transparent px-3 py-2 text-sm outline-none transition-colors md:h-10',
+            'h-9 w-full min-w-0 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none md:h-10',
+            'transition-[border-color,box-shadow,background-color] duration-150',
+            'hover:border-stone-300 dark:hover:border-stone-600',
             // placeholder
             'placeholder:text-stone-400 dark:placeholder:text-stone-500',
             // file input
             'file:inline-flex file:h-7 file:cursor-pointer file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-stone-900 dark:file:text-stone-50',
             // focus
-            'focus-visible:border-accent-500',
-            'dark:focus-visible:border-accent-400',
+            'focus-visible:border-accent-500 focus-visible:ring-4 focus-visible:ring-accent-500/15',
+            'dark:focus-visible:border-accent-400 dark:focus-visible:ring-accent-400/15',
             // disabled
             'disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-stone-100 disabled:opacity-50',
             // invalid
-            'aria-invalid:border-red-500',
+            'aria-invalid:border-red-500 aria-invalid:focus-visible:ring-red-500/15',
             // dark base
-            'dark:border-stone-700 dark:bg-stone-800/30',
+            'dark:border-stone-700 dark:bg-stone-900/60',
             'dark:disabled:bg-stone-800/80',
             'dark:aria-invalid:border-red-500/70',
             // adornment padding

@@ -32,8 +32,8 @@ const DropdownTrigger = ({
       className={cn(
         'flex-1 justify-between rounded-lg px-3 bg-transparent shadow-none font-normal',
         'hover:border-stone-300 hover:bg-transparent dark:hover:border-stone-600 dark:hover:bg-stone-800/30',
-        'focus-visible:border-cyan-500 focus-visible:ring-0 dark:focus-visible:border-cyan-400',
-        open && 'border-cyan-500 dark:border-cyan-400',
+        'focus-visible:border-accent-500 focus-visible:ring-0 dark:focus-visible:border-accent-400',
+        open && 'border-accent-500 dark:border-accent-400',
         'dark:border-stone-700 dark:bg-stone-800/30',
         className,
       )}

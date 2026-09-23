@@ -1,8 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Loader2, LogIn, Mail } from 'lucide-react';
 
+import Callout from '@/components/custom/Callout';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -63,23 +64,12 @@ const SignInForm = () => {
         onSubmit={form.handleSubmit(signInFormSubmitHandler)}
       >
         {rootError && (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-          >
-            <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
-            <div>
-              <p className="font-medium">{rootError}</p>
-              {showVerifyHint && (
-                <p className="mt-0.5 text-red-600/80 dark:text-red-300/80">
-                  {AUTH_MESSAGES.VERIFY_EMAIL_HINT}
-                </p>
-              )}
-            </div>
-          </div>
+          <Callout variant="danger" role="alert" title={rootError}>
+            {showVerifyHint && AUTH_MESSAGES.VERIFY_EMAIL_HINT}
+          </Callout>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name={EMAIL}
@@ -91,6 +81,8 @@ const SignInForm = () => {
                     type="email"
                     placeholder="admin@example.com"
                     autoComplete="email"
+                    autoFocus
+                    startAdornment={<Mail className="size-4 text-stone-400" />}
                     {...field}
                   />
                 </FormControl>
@@ -107,7 +99,7 @@ const SignInForm = () => {
                   <FormLabel>Password</FormLabel>
                   <Link
                     to={ROUTES.PUBLIC.AUTH.FORGOT_PASSWORD}
-                    className="text-sm font-medium text-accent-600 hover:underline dark:text-accent-400"
+                    className="text-xs font-medium text-accent-600 underline-offset-4 hover:underline dark:text-accent-400"
                   >
                     Forgot password?
                   </Link>
@@ -130,10 +122,10 @@ const SignInForm = () => {
           className="w-full"
           disabled={signIn.isPending}
           startAdornment={
-            signIn.isPending ? <Loader2 className="animate-spin" /> : undefined
+            signIn.isPending ? <Loader2 className="animate-spin" /> : <LogIn />
           }
         >
-          Sign in
+          {signIn.isPending ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
     </Form>

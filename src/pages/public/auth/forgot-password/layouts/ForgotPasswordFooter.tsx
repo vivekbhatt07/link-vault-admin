@@ -7,7 +7,7 @@ const ForgotPasswordFooter = () => {
       Remember your password?{' '}
       <Link
         to={ROUTES.PUBLIC.AUTH.SIGN_IN}
-        className="text-accent-600 hover:underline dark:text-accent-400"
+        className="font-medium text-accent-600 underline-offset-4 hover:underline dark:text-accent-400"
       >
         Sign in
       </Link>

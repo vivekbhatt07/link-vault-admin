@@ -36,12 +36,16 @@ const HighlightsField = ({
     onChange(copy);
   };
 
-  const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
+  const remove = (index: number) =>
+    onChange(value.filter((_, i) => i !== index));
 
   return (
     <div className="flex flex-col gap-2">
       {value.map((highlight, index) => (
-        <div key={index} className="flex flex-col gap-1">
+        <div
+          key={index}
+          className="flex animate-in flex-col gap-1 duration-200 fade-in-0 slide-in-from-top-1"
+        >
           <div className="flex items-center gap-2">
             <Input
               value={highlight}

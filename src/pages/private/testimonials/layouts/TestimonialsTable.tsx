@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SimpleTooltip } from '@/components/ui/tooltip';
 import { ROUTES } from '@/constants/routes';
 import { formatDateTime, getDisplayName, getInitials } from '@/helpers/format';
 import type { TestimonialWithProduct } from '@/types/api';
@@ -25,7 +26,7 @@ const TestimonialsTable = ({
   testimonials,
   onDelete,
 }: TTestimonialsTableProps) => (
-  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white dark:border-stone-700/60 dark:bg-stone-900">
+  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-700/60 dark:bg-stone-900">
     <Table>
       <TableHeader className="bg-stone-50 dark:bg-stone-800/50">
         <TableRow>
@@ -34,7 +35,9 @@ const TestimonialsTable = ({
           <TableHead className="w-28">Rating</TableHead>
           <TableHead className="min-w-64">Testimonial</TableHead>
           <TableHead className="hidden w-32 xl:table-cell">Posted</TableHead>
-          <TableHead className="w-16 text-right">Actions</TableHead>
+          <TableHead className="w-16 text-right">
+            <span className="sr-only">Actions</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -81,15 +84,17 @@ const TestimonialsTable = ({
             </TableCell>
 
             <TableCell className="text-right">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onDelete(testimonial)}
-                aria-label={`Delete testimonial by ${getDisplayName(testimonial.user)}`}
-                className="text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
-              >
-                <Trash2 />
-              </Button>
+              <SimpleTooltip label="Delete">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onDelete(testimonial)}
+                  aria-label={`Delete testimonial by ${getDisplayName(testimonial.user)}`}
+                  className="text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 />
+                </Button>
+              </SimpleTooltip>
             </TableCell>
           </TableRow>
         ))}

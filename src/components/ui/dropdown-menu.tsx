@@ -88,11 +88,11 @@ function DropdownMenuItem({
       className={cn(
         'group/dropdown-menu-item relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm',
         'outline-hidden select-none transition-colors duration-100',
-        // default focus — cyan
-        'focus:bg-cyan-50 focus:text-cyan-700',
-        'dark:focus:bg-cyan-950/50 dark:focus:text-cyan-200',
-        'not-data-[variant=destructive]:focus:**:text-cyan-700',
-        'dark:not-data-[variant=destructive]:focus:**:text-cyan-200',
+        // default focus — accent
+        'focus:bg-accent-50 focus:text-accent-700',
+        'dark:focus:bg-accent-950/50 dark:focus:text-accent-200',
+        'not-data-[variant=destructive]:focus:**:text-accent-700',
+        'dark:not-data-[variant=destructive]:focus:**:text-accent-200',
         'data-inset:pl-7',
         // destructive variant
         'data-[variant=destructive]:text-red-600 dark:data-[variant=destructive]:text-red-400',
@@ -124,8 +124,8 @@ function DropdownMenuCheckboxItem({
       className={cn(
         'relative flex cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm',
         'outline-hidden select-none transition-colors duration-100',
-        'focus:bg-cyan-50 focus:text-cyan-700 focus:**:text-cyan-700',
-        'dark:focus:bg-cyan-950/50 dark:focus:text-cyan-200 dark:focus:**:text-cyan-200',
+        'focus:bg-accent-50 focus:text-accent-700 focus:**:text-accent-700',
+        'dark:focus:bg-accent-950/50 dark:focus:text-accent-200 dark:focus:**:text-accent-200',
         'data-inset:pl-7',
         'data-disabled:pointer-events-none data-disabled:opacity-50',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -139,7 +139,7 @@ function DropdownMenuCheckboxItem({
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon className="size-3.5 text-cyan-600 dark:text-cyan-400" />
+          <CheckIcon className="size-3.5 text-accent-600 dark:text-accent-400" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -173,8 +173,8 @@ function DropdownMenuRadioItem({
       className={cn(
         'relative flex cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm',
         'outline-hidden select-none transition-colors duration-100',
-        'focus:bg-cyan-50 focus:text-cyan-700 focus:**:text-cyan-700',
-        'dark:focus:bg-cyan-950/50 dark:focus:text-cyan-200 dark:focus:**:text-cyan-200',
+        'focus:bg-accent-50 focus:text-accent-700 focus:**:text-accent-700',
+        'dark:focus:bg-accent-950/50 dark:focus:text-accent-200 dark:focus:**:text-accent-200',
         'data-inset:pl-7',
         'data-disabled:pointer-events-none data-disabled:opacity-50',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -187,7 +187,7 @@ function DropdownMenuRadioItem({
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon className="size-3.5 text-cyan-600 dark:text-cyan-400" />
+          <CheckIcon className="size-3.5 text-accent-600 dark:text-accent-400" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -243,7 +243,7 @@ function DropdownMenuShortcut({
       className={cn(
         'ml-auto text-xs tracking-widest',
         'text-stone-400/70 dark:text-stone-500/70',
-        'group-focus/dropdown-menu-item:text-cyan-700/70 dark:group-focus/dropdown-menu-item:text-cyan-200/70',
+        'group-focus/dropdown-menu-item:text-accent-700/70 dark:group-focus/dropdown-menu-item:text-accent-200/70',
         className,
       )}
       {...props}
@@ -272,13 +272,13 @@ function DropdownMenuSubTrigger({
       className={cn(
         'flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm',
         'outline-hidden select-none transition-colors duration-100',
-        'focus:bg-cyan-50 focus:text-cyan-700',
-        'dark:focus:bg-cyan-950/50 dark:focus:text-cyan-200',
-        'not-data-[variant=destructive]:focus:**:text-cyan-700',
-        'dark:not-data-[variant=destructive]:focus:**:text-cyan-200',
+        'focus:bg-accent-50 focus:text-accent-700',
+        'dark:focus:bg-accent-950/50 dark:focus:text-accent-200',
+        'not-data-[variant=destructive]:focus:**:text-accent-700',
+        'dark:not-data-[variant=destructive]:focus:**:text-accent-200',
         'data-inset:pl-7',
-        'data-open:bg-cyan-50 data-open:text-cyan-700',
-        'dark:data-open:bg-cyan-950/50 dark:data-open:text-cyan-200',
+        'data-open:bg-accent-50 data-open:text-accent-700',
+        'dark:data-open:bg-accent-950/50 dark:data-open:text-accent-200',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
