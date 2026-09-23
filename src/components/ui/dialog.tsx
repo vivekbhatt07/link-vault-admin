@@ -38,9 +38,9 @@ function DialogOverlay({
       data-slot="dialog-overlay"
       className={cn(
         'fixed inset-0 isolate z-50',
-        'bg-black/20 dark:bg-black/50',
-        'supports-backdrop-filter:backdrop-blur-sm',
-        'duration-150',
+        'bg-stone-950/30 dark:bg-black/60',
+        'supports-backdrop-filter:backdrop-blur-[2px]',
+        'duration-200',
         'data-open:animate-in data-open:fade-in-0',
         'data-closed:animate-out data-closed:fade-out-0',
         className,
@@ -66,13 +66,13 @@ function DialogContent({
         className={cn(
           'fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2',
           'max-w-[calc(100%-2rem)] sm:max-w-sm md:max-w-md',
-          'gap-4 rounded-xl p-4 sm:p-6',
+          'gap-4 rounded-2xl p-4 sm:p-6',
           // surface
-          'border border-stone-200/60 bg-white text-stone-900 shadow-xl',
-          'dark:border-stone-700/60 dark:bg-stone-900 dark:text-stone-50',
-          'outline-none duration-150',
-          'data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
-          'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+          'border border-stone-200/70 bg-white text-stone-900 shadow-2xl shadow-stone-950/10',
+          'dark:border-stone-700/60 dark:bg-stone-900 dark:text-stone-50 dark:shadow-black/40',
+          'outline-none duration-200 ease-out',
+          'data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.97] data-open:slide-in-from-bottom-2',
+          'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.97]',
           className,
         )}
         {...props}
@@ -118,7 +118,7 @@ function DialogFooter({
       data-slot="dialog-footer"
       className={cn(
         '-mx-4 -mb-4 sm:-mx-6 sm:-mb-6',
-        'flex flex-col-reverse gap-2 rounded-b-xl p-4',
+        'flex flex-col-reverse gap-2 rounded-b-2xl p-4',
         'border-t border-stone-200/60 bg-stone-50',
         'dark:border-stone-700/60 dark:bg-stone-800/50',
         'sm:flex-row sm:justify-end',

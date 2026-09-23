@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
+import Callout from '@/components/custom/Callout';
 import CategoryTreePicker from '@/components/custom/CategoryTreePicker';
 import ImageUrlInput from '@/components/custom/ImageUrlInput';
 import { Button } from '@/components/ui/button';
@@ -170,17 +171,14 @@ const CategoryDialog = ({
               />
 
               {isRenaming && (
-                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  <p>
-                    Renaming regenerates the slug (unless you set a custom one
-                    below) and{' '}
-                    <span className="font-medium">
-                      breaks existing storefront URLs
-                    </span>{' '}
-                    for this category.
-                  </p>
-                </div>
+                <Callout variant="warning">
+                  Renaming regenerates the slug (unless you set a custom one
+                  below) and{' '}
+                  <span className="font-medium">
+                    breaks existing storefront URLs
+                  </span>{' '}
+                  for this category.
+                </Callout>
               )}
 
               <FormField
@@ -199,7 +197,8 @@ const CategoryDialog = ({
                     </FormControl>
                     {isEdit && category && (
                       <FormDescription>
-                        Current slug: <span className="font-mono">{category.slug}</span>
+                        Current slug:{' '}
+                        <span className="font-mono">{category.slug}</span>
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -208,16 +207,13 @@ const CategoryDialog = ({
               />
 
               {isSlugChanged && !isRenaming && (
-                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  <p>
-                    Changing the slug{' '}
-                    <span className="font-medium">
-                      breaks existing storefront URLs
-                    </span>{' '}
-                    for this category.
-                  </p>
-                </div>
+                <Callout variant="warning">
+                  Changing the slug{' '}
+                  <span className="font-medium">
+                    breaks existing storefront URLs
+                  </span>{' '}
+                  for this category.
+                </Callout>
               )}
 
               <FormField
@@ -290,7 +286,7 @@ const CategoryDialog = ({
                 control={form.control}
                 name={IS_ACTIVE}
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-stone-200 px-3 py-2.5 dark:border-stone-700">
+                  <FormItem className="flex flex-row items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50/60 px-3 py-2.5 dark:border-stone-700 dark:bg-stone-800/30">
                     <div className="flex flex-col gap-0.5">
                       <FormLabel>Active</FormLabel>
                       <FormDescription>

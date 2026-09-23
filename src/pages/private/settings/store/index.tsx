@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
+import { CheckCheck, Contact, MessageCircle, Share2 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import FormActionBar from '@/components/custom/FormActionBar';
 import {
   Form,
   FormControl,
@@ -14,13 +14,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader } from '@/components/ui/loader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { applyApiFieldErrors, pickChangedFields } from '@/helpers/form';
 import { formatPrice } from '@/helpers/format';
 import { useSettings, useUpdateSettings } from '@/hooks/settings';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import type { StoreSettings, UpdateSettingsPayload } from '@/types/api';
 
+import SettingsSection from '../components/SettingsSection';
 import {
   DEFAULT_WHATSAPP_TEMPLATE,
   STORE_SETTINGS_FORM_FIELD_NAMES,
@@ -39,7 +41,9 @@ const {
   YOUTUBE_URL,
 } = STORE_SETTINGS_FORM_FIELD_NAMES;
 
-const toFormData = (settings: StoreSettings | undefined): TStoreSettingsFormData => ({
+const toFormData = (
+  settings: StoreSettings | undefined,
+): TStoreSettingsFormData => ({
   whatsappNumber: settings?.whatsappNumber ?? '',
   whatsappMessageTemplate: settings?.whatsappMessageTemplate ?? '',
   contactEmail: settings?.contactEmail ?? '',
@@ -74,6 +78,8 @@ const StoreSettingsPage = () => {
   }, [settings.data, form]);
 
   const templateValue = form.watch(WHATSAPP_MESSAGE_TEMPLATE) ?? '';
+  const isDirty = form.formState.isDirty;
+  useUnsavedChangesWarning(isDirty && !updateSettings.isPending);
 
   const handleSubmit = (data: TStoreSettingsFormData) => {
     const changed = pickChangedFields(toFormData(settings.data), data);
@@ -109,7 +115,13 @@ const StoreSettingsPage = () => {
   };
 
   if (settings.isPending) {
-    return <Loader centered className="my-16" />;
+    return (
+      <div className="flex flex-col gap-6" role="status" aria-label="Loading">
+        <Skeleton className="h-72 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-56 w-full rounded-xl" />
+      </div>
+    );
   }
 
   return (
@@ -117,18 +129,13 @@ const StoreSettingsPage = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-8"
+          className="flex flex-col gap-6"
         >
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                WhatsApp buy button
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Powers the "buy on WhatsApp" link on every product.
-              </p>
-            </div>
-
+          <SettingsSection
+            icon={<MessageCircle />}
+            title="WhatsApp buy button"
+            description='Powers the "buy on WhatsApp" link on every product.'
+          >
             <FormField
               control={form.control}
               name={WHATSAPP_NUMBER}
@@ -180,24 +187,28 @@ const StoreSettingsPage = () => {
               )}
             />
 
-            <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-800/40 dark:text-stone-300">
-              <p className="mb-1 text-xs font-medium text-stone-500 dark:text-stone-400">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
                 Preview
               </p>
-              {renderPreview(templateValue)}
+              {/* Chat-style preview of what the buyer sends */}
+              <div className="rounded-xl bg-[#efeae2] p-4 dark:bg-[#0b141a]">
+                <div className="ml-auto w-fit max-w-[85%] rounded-lg rounded-tr-none bg-[#d9fdd3] px-3 py-2 text-sm leading-relaxed whitespace-pre-line text-stone-800 shadow-sm dark:bg-[#005c4b] dark:text-stone-100">
+                  {renderPreview(templateValue)}
+                  <span className="mt-1 flex items-center justify-end gap-1 text-[10px] text-stone-500 dark:text-stone-300/70">
+                    now
+                    <CheckCheck className="size-3.5 text-sky-500" />
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                Contact details
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Shown on the storefront's contact page.
-              </p>
-            </div>
-
+          <SettingsSection
+            icon={<Contact />}
+            title="Contact details"
+            description="Shown on the storefront's contact page."
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -236,18 +247,13 @@ const StoreSettingsPage = () => {
                 )}
               />
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                Social links
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Linked from the storefront's footer.
-              </p>
-            </div>
-
+          <SettingsSection
+            icon={<Share2 />}
+            title="Social links"
+            description="Linked from the storefront's footer."
+          >
             <FormField
               control={form.control}
               name={INSTAGRAM_URL}
@@ -302,29 +308,16 @@ const StoreSettingsPage = () => {
                 </FormItem>
               )}
             />
-          </div>
+          </SettingsSection>
 
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => form.reset(toFormData(settings.data))}
-              disabled={!form.formState.isDirty || updateSettings.isPending}
-            >
-              Reset
-            </Button>
-            <Button
-              type="submit"
-              disabled={!form.formState.isDirty || updateSettings.isPending}
-              startAdornment={
-                updateSettings.isPending ? (
-                  <Loader2 className="animate-spin" />
-                ) : undefined
-              }
-            >
-              Save changes
-            </Button>
-          </div>
+          <FormActionBar
+            isDirty={isDirty}
+            isPending={updateSettings.isPending}
+            submitLabel="Save changes"
+            secondaryLabel="Reset"
+            onSecondary={() => form.reset(toFormData(settings.data))}
+            secondaryRequiresDirty
+          />
         </form>
       </Form>
     </div>

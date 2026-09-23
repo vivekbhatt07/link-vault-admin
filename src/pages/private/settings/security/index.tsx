@@ -1,6 +1,6 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { KeyRound, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { applyApiFieldErrors } from '@/helpers/form';
 import { useChangePassword } from '@/hooks/auth';
+
+import SettingsSection from '../components/SettingsSection';
+import PasswordChecklist from './components/PasswordChecklist';
 
 import { SECURITY_FORM_FIELD_NAMES } from './constants';
 import { securityFormSchema } from './schemas';
@@ -34,6 +37,11 @@ const SecurityPage = () => {
       [NEW_PASSWORD]: '',
       [CONFIRM_NEW_PASSWORD]: '',
     },
+  });
+
+  const newPasswordValue = useWatch({
+    control: form.control,
+    name: NEW_PASSWORD,
   });
 
   const handleSubmit = (data: TSecurityFormData) => {
@@ -58,16 +66,12 @@ const SecurityPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-sm font-semibold text-foreground">
-            Change password
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Your session stays signed in after changing the password.
-          </p>
-        </div>
+    <div className="flex flex-col gap-6">
+      <SettingsSection
+        icon={<KeyRound />}
+        title="Change password"
+        description="Your session stays signed in after changing the password."
+      >
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
@@ -108,10 +112,11 @@ const SecurityPage = () => {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="sr-only">
                     8–64 characters with an uppercase letter, a lowercase
                     letter, a number, and a special character.
                   </FormDescription>
+                  <PasswordChecklist password={newPasswordValue ?? ''} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -137,7 +142,7 @@ const SecurityPage = () => {
               )}
             />
 
-            <div className="flex justify-end">
+            <div className="flex justify-end border-t border-stone-100 pt-4 dark:border-stone-800">
               <Button
                 type="submit"
                 disabled={changePassword.isPending}
@@ -152,7 +157,7 @@ const SecurityPage = () => {
             </div>
           </form>
         </Form>
-      </div>
+      </SettingsSection>
     </div>
   );
 };

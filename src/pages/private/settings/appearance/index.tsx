@@ -1,34 +1,24 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useAppearanceStore } from '@/store/appearanceStore';
-import type { TTheme } from './types';
-import ThemeSection from './layouts/ThemeSection';
-import AccentColorSection from './layouts/AccentColorSection';
+import { Info } from 'lucide-react';
 
+import { useAppearanceStore } from '@/store/appearanceStore';
+import AccentColorSection from './layouts/AccentColorSection';
+import ThemeSection from './layouts/ThemeSection';
+
+/** Preferences apply instantly and persist on this device. */
 const AppearancePage = () => {
   const { theme, setTheme, accentColor, setAccentColor } = useAppearanceStore();
 
-  const [pendingTheme, setPendingTheme] = useState<TTheme>(theme);
-  const [pendingAccent, setPendingAccent] = useState<string>(accentColor);
-
-  const handleSave = () => {
-    setTheme(pendingTheme);
-    setAccentColor(pendingAccent);
-  };
-
   return (
-    <div className="flex flex-col gap-8">
-      <ThemeSection
-        selectedTheme={pendingTheme}
-        onThemeChange={setPendingTheme}
-      />
+    <div className="flex flex-col gap-6">
+      <ThemeSection selectedTheme={theme} onThemeChange={setTheme} />
       <AccentColorSection
-        selectedAccent={pendingAccent}
-        onAccentChange={setPendingAccent}
+        selectedAccent={accentColor}
+        onAccentChange={setAccentColor}
       />
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>Save preferences</Button>
-      </div>
+      <p className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+        <Info className="size-3.5" />
+        Changes apply instantly and are saved on this device.
+      </p>
     </div>
   );
 };

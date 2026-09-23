@@ -1,15 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
-import { FolderTree, Plus, Search } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
+import {
+  ChevronsDownUp,
+  ChevronsUpDown,
+  FolderTree,
+  Plus,
+  Search,
+} from 'lucide-react';
 
+import Callout from '@/components/custom/Callout';
 import EmptyState from '@/components/custom/EmptyState';
+import ListSkeleton from '@/components/custom/ListSkeleton';
 import PageHeader from '@/components/custom/PageHeader';
 import CategoryDialog from '@/components/dialogs/category-dialog';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader } from '@/components/ui/loader';
 import { QUERY_KEYS } from '@/constants/query-key';
 import { ROUTES } from '@/constants/routes';
 import {
@@ -17,9 +24,15 @@ import {
   useDeleteCategory,
   useReorderCategories,
 } from '@/hooks/categories';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import type { CategoryTreeNode } from '@/types/api';
 
-import { applyReorderToTree, countNodes, filterTree } from './helpers';
+import {
+  applyReorderToTree,
+  collectParentIds,
+  countNodes,
+  filterTree,
+} from './helpers';
 import CategoryTreeList from './layouts/CategoryTreeList';
 
 type TDialogState =
@@ -30,7 +43,12 @@ type TDialogState =
 
 const TREE_PARAMS = { includeInactive: true };
 
+/** `?new=1` (from the dashboard or command palette) opens the create dialog. */
+const NEW_PARAM = 'new';
+
 const CategoriesPage = () => {
+  useDocumentTitle('Categories');
+  const [searchParams, setSearchParams] = useSearchParams();
   const categoryTree = useCategoryTree(TREE_PARAMS);
   const deleteCategory = useDeleteCategory();
   const reorderCategories = useReorderCategories();
@@ -40,6 +58,22 @@ const CategoriesPage = () => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [dialog, setDialog] = useState<TDialogState>({ type: 'closed' });
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const wantsNew = searchParams.get(NEW_PARAM) === '1';
+  if (wantsNew && dialog.type === 'closed') {
+    setDialog({ type: 'create', parentId: null });
+  }
+  useEffect(() => {
+    if (!wantsNew) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(NEW_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+  }, [wantsNew, setSearchParams]);
 
   const treeData = categoryTree.data;
   const tree = treeData ?? [];
@@ -53,6 +87,12 @@ const CategoriesPage = () => {
     setDialog({ type: 'closed' });
     setDeleteError(null);
   };
+
+  const parentIds = useMemo(() => collectParentIds(treeData ?? []), [treeData]);
+  const isAllExpanded =
+    parentIds.length > 0 && parentIds.every((id) => expandedIds.has(id));
+  const toggleExpandAll = () =>
+    setExpandedIds(isAllExpanded ? new Set() : new Set(parentIds));
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
@@ -103,23 +143,38 @@ const CategoriesPage = () => {
         }
       />
 
-      <div className="max-w-sm">
-        <Input
-          type="search"
-          placeholder="Search by name or slug…"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          onClear={() => setSearch('')}
-          startAdornment={
-            <Search className="pointer-events-none size-4 text-stone-400" />
-          }
-        />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full sm:max-w-sm">
+          <Input
+            type="search"
+            placeholder="Search by name or slug…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch('')}
+            startAdornment={
+              <Search className="pointer-events-none size-4 text-stone-400" />
+            }
+          />
+        </div>
+        {parentIds.length > 0 && !query && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleExpandAll}
+            className="w-fit text-stone-500"
+            startAdornment={
+              isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />
+            }
+          >
+            {isAllExpanded ? 'Collapse all' : 'Expand all'}
+          </Button>
+        )}
       </div>
 
       {categoryTree.isPending ? (
-        <Loader centered className="my-16" />
+        <ListSkeleton rows={6} trailing={1} bordered />
       ) : visibleTree.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-stone-200 bg-white dark:border-stone-700/60 dark:bg-stone-900">
+        <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-700/60 dark:bg-stone-900">
           <CategoryTreeList
             nodes={visibleTree}
             parentId={null}
@@ -172,26 +227,22 @@ const CategoriesPage = () => {
         }
       >
         {deleteError && deletingCategory && (
-          <div
-            role="alert"
-            className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-          >
-            <p className="font-medium">{deleteError}</p>
+          <Callout variant="danger" role="alert" title={deleteError}>
             {deleteErrorIsProducts && (
-              <>
+              <div className="mt-1 flex flex-col gap-1.5">
                 <Link
                   to={`${ROUTES.PRIVATE.PRODUCTS.ROOT}?categoryId=${deletingCategory.id}`}
-                  className="underline underline-offset-2 hover:text-red-900 dark:hover:text-red-200"
+                  className="w-fit font-medium underline underline-offset-2 hover:text-red-900 dark:hover:text-red-200"
                 >
                   View products in {deletingCategory.name} →
                 </Link>
-                <p className="text-red-600/80 dark:text-red-300/80">
+                <p>
                   This includes inactive products, which aren't shown on the
                   storefront but still block deletion.
                 </p>
-              </>
+              </div>
             )}
-          </div>
+          </Callout>
         )}
       </ConfirmDialog>
     </div>

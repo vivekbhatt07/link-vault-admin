@@ -1,4 +1,8 @@
-import type { ProductAvailability, ProductSort, PurchaseLinkPlatform } from '@/types/api';
+import type {
+  ProductAvailability,
+  ProductSort,
+  PurchaseLinkPlatform,
+} from '@/types/api';
 
 export const PRODUCT_FORM_FIELD_NAMES = {
   NAME: 'name',
@@ -86,6 +90,9 @@ export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: 'name_asc', label: 'Name: A–Z' },
   { value: 'name_desc', label: 'Name: Z–A' },
 ];
+
+/** Stock at or below this (but above 0) is flagged as low in the list. */
+export const LOW_STOCK_THRESHOLD = 5;
 
 /** Backend default is 20; max is 100. */
 export const PRODUCT_LIST_LIMIT = 20;

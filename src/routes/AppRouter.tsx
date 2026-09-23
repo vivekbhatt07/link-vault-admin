@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 
+import BrandMark from '@/components/custom/BrandMark';
 import PageLayout from '@/components/layouts/PageLayout';
 import { Loader } from '@/components/ui/loader';
 import { ROUTES } from '@/constants/routes';
@@ -31,8 +32,12 @@ export const AppRouter = () => {
   // anything protected avoids a flash of stale admin UI.
   if (isHydrating) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader size="lg" label="Restoring session…" />
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-5">
+        <BrandMark size="lg" className="animate-pulse" />
+        <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
+          <Loader size="sm" label="Restoring session…" />
+          Restoring your session…
+        </div>
       </div>
     );
   }
@@ -76,10 +81,7 @@ export const AppRouter = () => {
             path={ROUTES.PRIVATE.TESTIMONIALS}
             element={<TestimonialsPage />}
           />
-          <Route
-            path={ROUTES.PRIVATE.CUSTOMERS}
-            element={<CustomersPage />}
-          />
+          <Route path={ROUTES.PRIVATE.CUSTOMERS} element={<CustomersPage />} />
           <Route
             path={ROUTES.PRIVATE.SETTINGS.ROOT}
             element={<SettingsLayout />}

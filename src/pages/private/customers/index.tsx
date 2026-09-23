@@ -1,11 +1,12 @@
 import { useSearchParams } from 'react-router';
-import { Search, Users } from 'lucide-react';
+import { Search, Users, X } from 'lucide-react';
 
 import EmptyState from '@/components/custom/EmptyState';
+import ListSkeleton from '@/components/custom/ListSkeleton';
 import PageHeader from '@/components/custom/PageHeader';
 import TablePagination from '@/components/custom/TablePagination';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader } from '@/components/ui/loader';
 import {
   Select,
   SelectContent,
@@ -14,7 +15,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useUsers } from '@/hooks/users';
+import { cn } from '@/lib/utils';
 import type { Role } from '@/types/api';
 
 import {
@@ -27,6 +30,7 @@ import CustomersTable from './layouts/CustomersTable';
 const { PAGE, ROLE, SEARCH } = CUSTOMER_LIST_SEARCH_PARAMS;
 
 const CustomersPage = () => {
+  useDocumentTitle('Customers');
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Math.max(1, Number(searchParams.get(PAGE)) || 1);
@@ -70,7 +74,9 @@ const CustomersPage = () => {
             type="search"
             placeholder="Search by name or email…"
             value={search}
-            onChange={(event) => setFilter(SEARCH, event.target.value || undefined)}
+            onChange={(event) =>
+              setFilter(SEARCH, event.target.value || undefined)
+            }
             onClear={() => setFilter(SEARCH, undefined)}
             startAdornment={
               <Search className="pointer-events-none size-4 text-stone-400" />
@@ -84,7 +90,14 @@ const CustomersPage = () => {
             setFilter(ROLE, value === FILTER_ALL ? undefined : value)
           }
         >
-          <SelectTrigger className="sm:w-40" aria-label="Filter by role">
+          <SelectTrigger
+            className={cn(
+              'sm:w-40',
+              role &&
+                'border-accent-300 bg-accent-50/60 text-accent-800 dark:border-accent-800 dark:bg-accent-950/30 dark:text-accent-200',
+            )}
+            aria-label="Filter by role"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -96,9 +109,15 @@ const CustomersPage = () => {
       </div>
 
       {users.isPending ? (
-        <Loader centered className="my-16" />
+        <ListSkeleton rows={8} media="circle" trailing={2} />
       ) : items.length > 0 ? (
-        <>
+        <div
+          aria-busy={users.isPlaceholderData}
+          className={cn(
+            'flex flex-col gap-4 transition-opacity duration-200',
+            users.isPlaceholderData && 'pointer-events-none opacity-60',
+          )}
+        >
           <CustomersTable users={items} />
           <TablePagination
             page={users.data?.page ?? page}
@@ -110,7 +129,7 @@ const CustomersPage = () => {
               updateParams({ [PAGE]: next > 1 ? String(next) : undefined })
             }
           />
-        </>
+        </div>
       ) : (
         <EmptyState
           icon={<Users className="size-5" />}
@@ -119,6 +138,18 @@ const CustomersPage = () => {
             hasFilters
               ? 'Try a different search or role filter.'
               : 'Customers will appear here once they sign up.'
+          }
+          action={
+            hasFilters ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchParams(new URLSearchParams())}
+              >
+                <X />
+                Clear filters
+              </Button>
+            ) : undefined
           }
         />
       )}

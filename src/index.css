@@ -7,16 +7,133 @@
 
 /* Font family tokens — emits --font-sans / --font-heading CSS vars + utility classes */
 @theme {
-  --font-sans:    'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-heading: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 
-  /* Accent color tokens — overridden at runtime via appearanceStore */
-  --color-accent-50:  var(--accent-50,  #ecfeff);
-  --color-accent-400: var(--accent-400, #22d3ee);
-  --color-accent-500: var(--accent-500, #06b6d4);
-  --color-accent-600: var(--accent-600, #0891b2);
-  --color-accent-700: var(--accent-700, #0e7490);
-  --color-accent-950: var(--accent-950, #083344);
+  /* Accent color tokens — overridden at runtime via appearanceStore.
+     Fallbacks match the store's default accent (blue). */
+  --color-accent-50: var(--accent-50, #eff6ff);
+  --color-accent-100: var(--accent-100, #dbeafe);
+  --color-accent-200: var(--accent-200, #bfdbfe);
+  --color-accent-300: var(--accent-300, #93c5fd);
+  --color-accent-400: var(--accent-400, #60a5fa);
+  --color-accent-500: var(--accent-500, #3b82f6);
+  --color-accent-600: var(--accent-600, #2563eb);
+  --color-accent-700: var(--accent-700, #1d4ed8);
+  --color-accent-800: var(--accent-800, #1e40af);
+  --color-accent-900: var(--accent-900, #1e3a8a);
+  --color-accent-950: var(--accent-950, #172554);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-page-in: page-in 360ms var(--ease-out-expo) both;
+  --animate-fade-up: fade-up 420ms var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-progress: progress 1.2s ease-in-out infinite;
+  --animate-pop: pop 260ms var(--ease-out-expo);
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes shimmer {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes progress {
+    0% {
+      transform: translateX(-100%) scaleX(0.3);
+    }
+    50% {
+      transform: translateX(10%) scaleX(0.6);
+    }
+    100% {
+      transform: translateX(100%) scaleX(0.3);
+    }
+  }
+
+  @keyframes pop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.25);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* shadcn semantic tokens — mapped onto the stone palette so utilities like
+   text-muted-foreground resolve in both themes. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+}
+
+:root {
+  --background: var(--color-stone-50);
+  --foreground: var(--color-stone-900);
+  --muted: var(--color-stone-100);
+  --muted-foreground: var(--color-stone-500);
+  color-scheme: light;
+}
+
+.dark {
+  --background: var(--color-stone-950);
+  --foreground: var(--color-stone-50);
+  --muted: var(--color-stone-800);
+  --muted-foreground: var(--color-stone-400);
+  color-scheme: dark;
+}
+
+/* Staggered entrance for direct children (dashboard tiles, lists). */
+@utility stagger {
+  & > * {
+    animation: var(--animate-fade-up);
+  }
+  & > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  & > :nth-child(4) {
+    animation-delay: 120ms;
+  }
+  & > :nth-child(5) {
+    animation-delay: 160ms;
+  }
+  & > :nth-child(6) {
+    animation-delay: 200ms;
+  }
+  & > :nth-child(n + 7) {
+    animation-delay: 240ms;
+  }
 }
 
 @layer base {
@@ -37,6 +154,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -45,10 +163,35 @@
     line-height: 1.5;
   }
 
+  ::selection {
+    background-color: color-mix(
+      in oklab,
+      var(--color-accent-500) 22%,
+      transparent
+    );
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
     }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Theme switch cross-fade (View Transitions API). */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 220ms;
+    animation-timing-function: ease-out;
   }
 
   /* ── Scrollbar ─────────────────────────────────────────────── */

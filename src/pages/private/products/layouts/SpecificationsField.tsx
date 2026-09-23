@@ -29,7 +29,10 @@ const SpecificationsField = ({ disabled }: TSpecificationsFieldProps) => {
         const rowError =
           errors?.[index]?.label?.message ?? errors?.[index]?.value?.message;
         return (
-          <div key={field.id} className="flex flex-col gap-1">
+          <div
+            key={field.id}
+            className="flex animate-in flex-col gap-1 duration-200 fade-in-0 slide-in-from-top-1"
+          >
             <div className="flex items-start gap-2">
               <Input
                 placeholder="Label (e.g. Material)"

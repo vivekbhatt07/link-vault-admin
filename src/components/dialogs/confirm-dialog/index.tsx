@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, HelpCircle, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type TConfirmDialogProps = {
   open: boolean;
@@ -47,15 +48,29 @@ const ConfirmDialogBody = ({
 
   const requiresTyping = Boolean(confirmText);
   const isConfirmEnabled = !requiresTyping || typed === confirmText;
+  const isDestructive = variant === 'destructive';
+  const Icon = isDestructive ? AlertTriangle : HelpCircle;
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription asChild>
-          <div>{description}</div>
-        </DialogDescription>
-      </DialogHeader>
+      <div className="flex items-start gap-4 pr-6">
+        <div
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-full',
+            isDestructive
+              ? 'bg-red-50 text-red-600 ring-8 ring-red-50/50 dark:bg-red-950/50 dark:text-red-400 dark:ring-red-950/20'
+              : 'bg-accent-50 text-accent-600 ring-8 ring-accent-50/50 dark:bg-accent-950/50 dark:text-accent-400 dark:ring-accent-950/20',
+          )}
+        >
+          <Icon className="size-5" />
+        </div>
+        <DialogHeader className="pt-1.5">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription asChild>
+            <div>{description}</div>
+          </DialogDescription>
+        </DialogHeader>
+      </div>
 
       {children}
 
@@ -63,7 +78,7 @@ const ConfirmDialogBody = ({
         <div className="flex flex-col gap-2">
           <p className="text-sm text-stone-700 dark:text-stone-300">
             Type{' '}
-            <span className="font-mono font-semibold text-red-600 dark:text-red-400">
+            <span className="rounded bg-red-50 px-1.5 py-0.5 font-mono text-xs font-semibold text-red-600 dark:bg-red-950/40 dark:text-red-400">
               {confirmText}
             </span>{' '}
             to confirm.
@@ -71,9 +86,19 @@ const ConfirmDialogBody = ({
           <Input
             value={typed}
             onChange={(event) => setTyped(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && isConfirmEnabled && !isPending) {
+                onConfirm();
+              }
+            }}
             placeholder={confirmText}
             autoComplete="off"
+            autoFocus
             disabled={isPending}
+            className={cn(
+              isConfirmEnabled &&
+                'border-red-400 focus-visible:border-red-500 focus-visible:ring-red-500/15 dark:border-red-500/70',
+            )}
           />
         </div>
       )}

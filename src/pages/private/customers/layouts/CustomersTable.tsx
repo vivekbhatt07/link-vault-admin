@@ -1,3 +1,5 @@
+import { BadgeCheck, ShieldCheck } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -17,7 +19,7 @@ type TCustomersTableProps = {
 
 /** Read-only — there is no user detail, edit, delete, or role-change endpoint. */
 const CustomersTable = ({ users }: TCustomersTableProps) => (
-  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white dark:border-stone-700/60 dark:bg-stone-900">
+  <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-700/60 dark:bg-stone-900">
     <Table>
       <TableHeader className="bg-stone-50 dark:bg-stone-800/50">
         <TableRow>
@@ -32,10 +34,10 @@ const CustomersTable = ({ users }: TCustomersTableProps) => (
       </TableHeader>
       <TableBody>
         {users.map((user) => (
-          <TableRow key={user.id}>
+          <TableRow key={user.id} className="group">
             <TableCell>
               <div className="flex items-center gap-2.5">
-                <Avatar className="size-8 shrink-0 border border-stone-200 dark:border-stone-800">
+                <Avatar className="size-8 shrink-0 border border-stone-200 transition-transform duration-300 group-hover:scale-105 dark:border-stone-800">
                   <AvatarImage
                     src={user.avatar || undefined}
                     alt={getDisplayName(user)}
@@ -60,15 +62,25 @@ const CustomersTable = ({ users }: TCustomersTableProps) => (
             </TableCell>
 
             <TableCell className="text-center">
-              <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                {user.role}
-              </Badge>
+              {user.role === 'ADMIN' ? (
+                <Badge variant="accent">
+                  <ShieldCheck />
+                  Admin
+                </Badge>
+              ) : (
+                <Badge variant="secondary">Customer</Badge>
+              )}
             </TableCell>
 
             <TableCell className="hidden text-center md:table-cell">
-              <Badge variant={user.isVerified ? 'outline' : 'destructive'}>
-                {user.isVerified ? 'Verified' : 'Unverified'}
-              </Badge>
+              {user.isVerified ? (
+                <Badge variant="success">
+                  <BadgeCheck />
+                  Verified
+                </Badge>
+              ) : (
+                <Badge variant="warning">Unverified</Badge>
+              )}
             </TableCell>
 
             <TableCell className="hidden text-xs whitespace-nowrap text-stone-500 lg:table-cell dark:text-stone-400">

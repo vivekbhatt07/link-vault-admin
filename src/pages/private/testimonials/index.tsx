@@ -3,15 +3,14 @@ import { useSearchParams } from 'react-router';
 import { MessageSquare } from 'lucide-react';
 
 import EmptyState from '@/components/custom/EmptyState';
+import ListSkeleton from '@/components/custom/ListSkeleton';
 import PageHeader from '@/components/custom/PageHeader';
 import TablePagination from '@/components/custom/TablePagination';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
-import { Loader } from '@/components/ui/loader';
 import { getDisplayName } from '@/helpers/format';
-import {
-  useAllTestimonials,
-  useDeleteTestimonial,
-} from '@/hooks/testimonials';
+import { useAllTestimonials, useDeleteTestimonial } from '@/hooks/testimonials';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { cn } from '@/lib/utils';
 import type { TestimonialWithProduct } from '@/types/api';
 
 import {
@@ -23,6 +22,7 @@ import TestimonialsTable from './layouts/TestimonialsTable';
 const { PAGE } = TESTIMONIAL_LIST_SEARCH_PARAMS;
 
 const TestimonialsPage = () => {
+  useDocumentTitle('Testimonials');
   const [searchParams, setSearchParams] = useSearchParams();
   const [target, setTarget] = useState<TestimonialWithProduct | null>(null);
 
@@ -68,9 +68,15 @@ const TestimonialsPage = () => {
       />
 
       {testimonials.isPending ? (
-        <Loader centered className="my-16" />
+        <ListSkeleton rows={8} media="circle" trailing={1} />
       ) : items.length > 0 ? (
-        <>
+        <div
+          aria-busy={testimonials.isPlaceholderData}
+          className={cn(
+            'flex flex-col gap-4 transition-opacity duration-200',
+            testimonials.isPlaceholderData && 'pointer-events-none opacity-60',
+          )}
+        >
           <TestimonialsTable testimonials={items} onDelete={setTarget} />
           <TablePagination
             page={testimonials.data?.page ?? page}
@@ -82,7 +88,7 @@ const TestimonialsPage = () => {
               updateParams({ [PAGE]: next > 1 ? String(next) : undefined })
             }
           />
-        </>
+        </div>
       ) : (
         <EmptyState
           icon={<MessageSquare className="size-5" />}

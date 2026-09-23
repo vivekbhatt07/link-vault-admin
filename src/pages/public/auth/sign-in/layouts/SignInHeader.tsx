@@ -1,14 +1,12 @@
-import { ShieldCheck } from 'lucide-react';
+import BrandMark from '@/components/custom/BrandMark';
 
 const SignInHeader = () => {
   return (
-    <div className="mb-6 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-accent-50 text-accent-700 dark:bg-accent-950/50 dark:text-accent-400">
-        <ShieldCheck />
-      </div>
-      <h1 className="text-lg font-medium">Admin sign in</h1>
-      <p className="text-sm text-muted-foreground">
-        Manage the Pahadi Shilpkar catalog
+    <div className="mb-4 flex flex-col items-center text-center">
+      <BrandMark size="lg" className="mb-4" />
+      <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sign in to manage the Pahadi Shilpkar catalog
       </p>
     </div>
   );

@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { MessageSquare, Trash2 } from 'lucide-react';
 
 import EmptyState from '@/components/custom/EmptyState';
+import ListSkeleton from '@/components/custom/ListSkeleton';
 import RatingStars from '@/components/custom/RatingStars';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader } from '@/components/ui/loader';
+import { SimpleTooltip } from '@/components/ui/tooltip';
 import { formatDateTime, getDisplayName, getInitials } from '@/helpers/format';
 import { useDeleteTestimonial, useTestimonials } from '@/hooks/testimonials';
 import type { ProductDetail, Testimonial } from '@/types/api';
@@ -37,13 +39,16 @@ const ProductTestimonials = ({ product }: TProductTestimonialsProps) => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-stone-100 pb-4 dark:border-stone-800">
         <div className="flex flex-col gap-1">
           <CardTitle className="text-sm font-semibold">
             Testimonials
-            <span className="ml-2 text-xs font-normal text-stone-400 dark:text-stone-500">
+            <Badge
+              variant="secondary"
+              className="ml-2 align-middle tabular-nums"
+            >
               {product.testimonialCount}
-            </span>
+            </Badge>
           </CardTitle>
           <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
             <RatingStars rating={product.avgRating} />
@@ -55,11 +60,14 @@ const ProductTestimonials = ({ product }: TProductTestimonialsProps) => {
       </CardHeader>
       <CardContent className="p-0">
         {testimonials.isPending ? (
-          <Loader centered className="my-10" />
+          <ListSkeleton rows={3} media="circle" trailing={0} bordered={false} />
         ) : items.length > 0 ? (
           <ul className="divide-y divide-stone-100 dark:divide-stone-800">
             {items.map((testimonial) => (
-              <li key={testimonial.id} className="flex gap-3 px-4 py-4 sm:px-6">
+              <li
+                key={testimonial.id}
+                className="group flex gap-3 px-3 py-4 transition-colors hover:bg-stone-50/60 sm:px-4 md:px-6 dark:hover:bg-stone-800/20"
+              >
                 <Avatar className="size-9 shrink-0 border border-stone-200 dark:border-stone-800">
                   <AvatarImage
                     src={testimonial.user.avatar || undefined}
@@ -83,15 +91,17 @@ const ProductTestimonials = ({ product }: TProductTestimonialsProps) => {
                     {testimonial.content}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setTarget(testimonial)}
-                  aria-label="Delete testimonial"
-                  className="shrink-0 text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 />
-                </Button>
+                <SimpleTooltip label="Delete testimonial">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setTarget(testimonial)}
+                    aria-label="Delete testimonial"
+                    className="shrink-0 text-stone-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 />
+                  </Button>
+                </SimpleTooltip>
               </li>
             ))}
           </ul>

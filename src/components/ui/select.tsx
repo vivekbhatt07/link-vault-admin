@@ -15,11 +15,15 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     data-slot="select-trigger"
     className={cn(
-      'flex h-9 md:h-10 w-full items-center justify-between gap-2 rounded-lg border border-stone-200 bg-transparent px-3 text-sm outline-none transition-colors',
+      'flex h-9 md:h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-stone-200 bg-white px-3 text-sm outline-none',
+      'transition-[border-color,box-shadow] duration-150',
+      'hover:border-stone-300 dark:hover:border-stone-600',
       'placeholder:text-stone-400 dark:placeholder:text-stone-500',
-      'focus:border-cyan-500 dark:focus:border-cyan-400',
-      'data-[state=open]:border-cyan-500 dark:data-[state=open]:border-cyan-400',
-      'dark:border-stone-700 dark:bg-stone-800/30',
+      'focus-visible:border-accent-500 focus-visible:ring-4 focus-visible:ring-accent-500/15',
+      'dark:focus-visible:border-accent-400 dark:focus-visible:ring-accent-400/15',
+      'data-[state=open]:border-accent-500 dark:data-[state=open]:border-accent-400',
+      'dark:border-stone-700 dark:bg-stone-900/60',
+      '[&[data-state=open]>svg]:rotate-180',
       'disabled:cursor-not-allowed disabled:opacity-50',
       className,
     )}
@@ -84,7 +88,9 @@ const SelectItem = React.forwardRef<
     data-slot="select-item"
     className={cn(
       'relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-3 text-sm outline-none',
+      'transition-colors duration-100',
       'focus:bg-stone-100 focus:text-stone-900 dark:focus:bg-stone-800 dark:focus:text-stone-50',
+      'data-[state=checked]:font-medium data-[state=checked]:text-accent-700 dark:data-[state=checked]:text-accent-300',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}

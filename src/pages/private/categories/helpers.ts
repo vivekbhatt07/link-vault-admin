@@ -22,6 +22,14 @@ export const filterTree = (
 export const countNodes = (nodes: CategoryTreeNode[]): number =>
   nodes.reduce((count, node) => count + 1 + countNodes(node.children), 0);
 
+/** Ids of every node that has children — i.e. everything "expand all" opens. */
+export const collectParentIds = (nodes: CategoryTreeNode[]): string[] =>
+  nodes.flatMap((node) =>
+    node.children.length > 0
+      ? [node.id, ...collectParentIds(node.children)]
+      : [],
+  );
+
 /** Replaces the sibling order under `parentId` (or the roots, when null)
  * with `orderedIds`, leaving every other branch untouched. */
 export const applyReorderToTree = (

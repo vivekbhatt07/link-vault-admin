@@ -9,13 +9,13 @@ const loaderVariants = cva(
   {
     variants: {
       /**
-       * `default`  — cyan accent on a muted track (matches the app's primary colour)
+       * `default`  — accent colour on a muted track (matches the app's primary colour)
        * `muted`    — subtle stone track + stone accent (use inside cards / forms)
        * `white`    — white ring, transparent track (use on dark / coloured backgrounds)
        */
       variant: {
         default:
-          'border-stone-200 border-t-cyan-500 dark:border-stone-700 dark:border-t-cyan-400',
+          'border-stone-200 border-t-accent-500 dark:border-stone-700 dark:border-t-accent-400',
         muted:
           'border-stone-200 border-t-stone-500 dark:border-stone-700 dark:border-t-stone-300',
         white: 'border-white/30 border-t-white',

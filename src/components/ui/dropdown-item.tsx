@@ -45,7 +45,7 @@ const DropdownItem = ({
     />
     <span className="flex-1 text-left">{label}</span>
     {selected && (
-      <Check className="shrink-0 text-cyan-600 dark:text-cyan-400 size-[13px]" />
+      <Check className="shrink-0 text-accent-600 dark:text-accent-400 size-[13px]" />
     )}
   </Button>
 );

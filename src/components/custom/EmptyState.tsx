@@ -17,19 +17,25 @@ const EmptyState = ({
 }: TEmptyStateProps) => (
   <div
     className={cn(
-      'flex flex-col items-center justify-center gap-3 py-16 text-center',
+      'flex animate-fade-up flex-col items-center justify-center gap-4 py-16 text-center',
       className,
     )}
   >
-    <div className="flex size-12 items-center justify-center rounded-full bg-stone-100 text-stone-400 dark:bg-stone-800">
-      {icon}
+    <div className="relative">
+      <div
+        aria-hidden
+        className="absolute -inset-3 rounded-full bg-accent-500/10 blur-xl dark:bg-accent-400/10"
+      />
+      <div className="relative flex size-12 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-400 shadow-sm dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
+        {icon}
+      </div>
     </div>
-    <div>
-      <p className="text-sm font-medium text-stone-900 dark:text-stone-50">
+    <div className="max-w-sm">
+      <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">
         {title}
       </p>
       {description && (
-        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
           {description}
         </p>
       )}

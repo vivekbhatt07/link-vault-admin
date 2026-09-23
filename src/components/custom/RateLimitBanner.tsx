@@ -34,7 +34,7 @@ const RateLimitBanner = () => {
   return (
     <div
       role="alert"
-      className="flex items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 sm:px-6"
+      className="flex animate-in items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm duration-300 fade-in-0 slide-in-from-top-2 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 sm:px-6"
     >
       <AlertTriangle className="size-4 shrink-0" />
       <p className="flex-1">

@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, X } from 'lucide-react';
 
 import EmptyState from '@/components/custom/EmptyState';
+import ListSkeleton from '@/components/custom/ListSkeleton';
 import PageHeader from '@/components/custom/PageHeader';
 import TablePagination from '@/components/custom/TablePagination';
 import ConfirmDialog from '@/components/dialogs/confirm-dialog';
 import { Button } from '@/components/ui/button';
-import { Loader } from '@/components/ui/loader';
 import { ROUTES } from '@/constants/routes';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { cn } from '@/lib/utils';
 import {
   useDeleteProduct,
   useProducts,
@@ -32,13 +34,21 @@ type TDialogState =
   | { type: 'deactivate'; product: Product }
   | { type: 'delete'; product: Product };
 
-const { PAGE, CATEGORY_ID, IS_FEATURED, IS_BESTSELLER, AVAILABILITY, SORT, SEARCH } =
-  PRODUCT_LIST_SEARCH_PARAMS;
+const {
+  PAGE,
+  CATEGORY_ID,
+  IS_FEATURED,
+  IS_BESTSELLER,
+  AVAILABILITY,
+  SORT,
+  SEARCH,
+} = PRODUCT_LIST_SEARCH_PARAMS;
 
 const parseBoolean = (value: string | null) =>
   value === 'true' ? true : value === 'false' ? false : undefined;
 
 const ProductsPage = () => {
+  useDocumentTitle('Products');
   const [searchParams, setSearchParams] = useSearchParams();
   const [dialog, setDialog] = useState<TDialogState>({ type: 'closed' });
 
@@ -136,7 +146,10 @@ const ProductsPage = () => {
         search={search}
         onCategoryChange={(value) => setFilter(CATEGORY_ID, value)}
         onFeaturedChange={(value) =>
-          setFilter(IS_FEATURED, value === undefined ? undefined : String(value))
+          setFilter(
+            IS_FEATURED,
+            value === undefined ? undefined : String(value),
+          )
         }
         onBestsellerChange={(value) =>
           setFilter(
@@ -145,15 +158,23 @@ const ProductsPage = () => {
           )
         }
         onAvailabilityChange={(value) => setFilter(AVAILABILITY, value)}
-        onSortChange={(value) => setFilter(SORT, value === 'newest' ? undefined : value)}
+        onSortChange={(value) =>
+          setFilter(SORT, value === 'newest' ? undefined : value)
+        }
         onSearchChange={(value) => setFilter(SEARCH, value || undefined)}
         onClear={() => setSearchParams(new URLSearchParams())}
       />
 
       {products.isPending ? (
-        <Loader centered className="my-16" />
+        <ListSkeleton rows={8} trailing={3} />
       ) : items.length > 0 ? (
-        <>
+        <div
+          aria-busy={products.isPlaceholderData}
+          className={cn(
+            'flex flex-col gap-4 transition-opacity duration-200',
+            products.isPlaceholderData && 'pointer-events-none opacity-60',
+          )}
+        >
           <ProductsTable
             products={items}
             isBusy={isMutating}
@@ -176,7 +197,7 @@ const ProductsPage = () => {
               updateParams({ [PAGE]: next > 1 ? String(next) : undefined })
             }
           />
-        </>
+        </div>
       ) : (
         <EmptyState
           icon={<Package className="size-5" />}
@@ -187,14 +208,23 @@ const ProductsPage = () => {
               : 'Create your first product to get started.'
           }
           action={
-            !hasActiveFilters ? (
+            hasActiveFilters ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchParams(new URLSearchParams())}
+              >
+                <X />
+                Clear filters
+              </Button>
+            ) : (
               <Button size="sm" asChild>
                 <Link to={ROUTES.PRIVATE.PRODUCTS.CREATE}>
                   <Plus />
                   New product
                 </Link>
               </Button>
-            ) : undefined
+            )
           }
         />
       )}
